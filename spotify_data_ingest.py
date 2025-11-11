@@ -52,7 +52,7 @@ def fetch_spotify_api(endpoint, token):
     return response.json()
 
 # ---
-# 2b. SPOTIFY WORKAROUND FUNCTION (NEW)
+# 2b. SPOTIFY WORKAROUND FUNCTION
 # ---
 def get_preview_url_workaround(track_id):
     """
@@ -139,9 +139,23 @@ def ingest_data(artist_name):
             # ---
             # STEP 2b: Ingest Album
             # ---
+            release_date_str = full_album_data['release_date']
+            precision = full_album_data['release_date_precision']
+            
+            formatted_release_date = None
+            if precision == 'year':
+                # e.g., "1973" -> "1973-01-01"
+                formatted_release_date = f"{release_date_str}-01-01"
+            elif precision == 'month':
+                # e.g., "1973-05" -> "1973-05-01"
+                formatted_release_date = f"{release_date_str}-01"
+            elif precision == 'day':
+                # e.g., "1973-05-15" -> "1973-05-15"
+                formatted_release_date = release_date_str
+
             album_to_insert = {
                 "title": full_album_data['name'],
-                "release_date": full_album_data['release_date'],
+                "release_date": formatted_release_date,
                 "type": full_album_data['album_type'],
                 "label_id": db_label['label_id']
             }
