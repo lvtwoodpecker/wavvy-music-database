@@ -2,3 +2,4 @@ supabase
 dotenv
 beautifulsoup4
 requests
+musicbrainzngs
