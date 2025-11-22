@@ -19,7 +19,7 @@ class Settings:
     
     # SUPABASE settings
     SUPABASE_URL: str = os.getenv("SUPABASE_URL", "") # Supabase project URL
-    SUPABASE_ANON_KEY: str = os.getenv("SUPABASE_ANON_KEY", "") # Public anon key
+    SUPABASE_SERVICE_KEY: str = os.getenv("SUPABASE_SERVICE_KEY", "") # Public anon key
     
     # SPOTIFY
     SPOTIFY_CLIENT_ID_P: str = os.getenv("SPOTIFY_CLIENT_ID_P", "") # paola's client id
