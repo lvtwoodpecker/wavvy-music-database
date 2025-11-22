@@ -3,3 +3,6 @@ dotenv
 beautifulsoup4
 requests
 musicbrainzngs
+Flask
+stripe
+dotenv
