@@ -70,6 +70,6 @@ npm run dev
 
 ---------
 ## Run Backend API server
-``bash
+```bash
 python3 -m app.main.py 
 ```
