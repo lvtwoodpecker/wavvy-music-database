@@ -34,5 +34,6 @@ def create_app():
             "status": "ok",
             "message": "Wavvy Music Database API is running!"
         }
+    
 
     return app

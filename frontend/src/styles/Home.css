@@ -1,0 +1,28 @@
+.home-main {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #050816;
+  color: #f9fafb;
+}
+
+.home-card {
+  padding: 2rem 2.5rem;
+  border-radius: 1rem;
+  background: #111827;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  max-width: 420px;
+  text-align: center;
+}
+
+.home-card h1 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+}
+
+.home-card p {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+  opacity: 0.9;
+}

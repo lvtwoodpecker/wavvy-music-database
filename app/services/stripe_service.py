@@ -5,8 +5,8 @@ if not settings.STRIPE_API_KEY:
     raise ValueError("STRIPE_API_KEY is not set in environment variables.")
 
 stripe.api_key = settings.STRIPE_API_KEY
-success_url = "http://localhost:3000/payment-success"
-cancel_url = "http://localhost:3000/payment-cancel"
+SUCCESS_URL = f"{settings.FRONTEND_URL}/payment-success?session_id={{CHECKOUT_SESSION_ID}}"
+CANCEL_URL = f"{settings.FRONTEND_URL}/payment-cancelled"
 
 def create_checkout_session(
     user_id: str, 
@@ -37,4 +37,4 @@ def create_checkout_session(
             "userId": user_id,
         },
     )
-    return session.url
+    return {"checkout_url": session.url}

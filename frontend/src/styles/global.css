@@ -1,0 +1,19 @@
+/* Global base styles */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  background-color: #050816;
+  color: #f9fafb;
+}
+
+a {
+  color: inherit;
+}
