@@ -1,6 +1,7 @@
 #  User API routes for managing user-related endpoints
 from flask import Blueprint, request, jsonify
-from app.services.user_service import create_advertiser, create_listener
+from app.services.stripe_create_user_service import create_advertiser, create_listener
+from app.services.stripe_create_user_service import get_user_by_email
 
 # create the blueprint for user routes
 user_bp = Blueprint('user_bp', __name__)

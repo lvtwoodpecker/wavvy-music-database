@@ -2,6 +2,7 @@ from flask import Flask, Blueprint, request, jsonify
 from app.config import settings
 from app.services.stripe_service import create_checkout_session
 
+
 payment_bp = Blueprint('payment_bp', __name__)
 
 @payment_bp.route('/create-checkout-session', methods=['POST'])

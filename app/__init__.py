@@ -12,10 +12,12 @@ def create_app():
     # from .api.spotify_routes import spotify_bp
     from .api.stripe_routes import payment_bp
     from .api.user_routes import user_bp
+    from .api.auth_routes import auth_bp
     
     # app.register_blueprint(spotify_bp, url_prefix='/api/spotify')
     app.register_blueprint(payment_bp, url_prefix='/api/stripe')
     app.register_blueprint(user_bp, url_prefix='/api/users')
+    app.register_blueprint(auth_bp, url_prefix="/api/auth")
     
     @app.get('/')
     def index():
