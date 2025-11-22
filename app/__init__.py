@@ -14,7 +14,7 @@ def create_app():
     # from .api.user_routes import user_bp
     
     # app.register_blueprint(spotify_bp, url_prefix='/api/spotify')
-    app.register_blueprint(payment_bp, url_prefix='/api/payments')
+    app.register_blueprint(payment_bp, url_prefix='/api/stripe')
     # app.register_blueprint(user_bp, url_prefix='/api/users')
     
     @app.get('/')

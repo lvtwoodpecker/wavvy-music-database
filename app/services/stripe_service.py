@@ -1,29 +1,40 @@
 import stripe 
 from app.config import settings
 
+if not settings.STRIPE_API_KEY:
+    raise ValueError("STRIPE_API_KEY is not set in environment variables.")
+
 stripe.api_key = settings.STRIPE_API_KEY
 success_url = "http://localhost:3000/payment-success"
 cancel_url = "http://localhost:3000/payment-cancel"
 
-def create_checkout_session(amount_cents: int, currency: str, payment_for: str):
-    try:
-        session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
-                'price_data': {
-                    'currency': currency,
-                    'product_data': {
-                        'name': f'Wavvy - {payment_for}',
+def create_checkout_session(
+    user_id: str, 
+    amount_cents: int, 
+    payment_for: str, 
+    currency: str = "usd") -> str:
+    
+    """
+    Creates a Stripe Checkout Session in TEST MODE and returns the redirect URL.
+    """
+    session = stripe.checkout.Session.create(
+        mode="payment",
+        line_items=[
+            {
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {
+                        "name": f"Wavvy - {payment_for}",
                     },
-                    'unit_amount': amount_cents,
+                    "unit_amount": amount_cents,  # in cents
                 },
-                'quantity': 1,
-            }],
-            mode='payment',
-            success_url=success_url,
-            cancel_url=cancel_url,
-        )
-        return session.url
-    except Exception as e:
-        print(f"Error creating checkout session: {e}")
-        return None
+                "quantity": 1,
+            }
+        ],
+        success_url=f"{settings.FRONTEND_URL}/payment-success?session_id={{CHECKOUT_SESSION_ID}}",
+        cancel_url=f"{settings.FRONTEND_URL}/payment-cancelled",
+        metadata={
+            "userId": user_id,
+        },
+    )
+    return session.url
