@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 from .config import settings
 
 def create_app():
@@ -16,6 +16,17 @@ def create_app():
     # app.register_blueprint(spotify_bp, url_prefix='/api/spotify')
     app.register_blueprint(payment_bp, url_prefix='/api/payments')
     # app.register_blueprint(user_bp, url_prefix='/api/users')
+    
+    @app.get('/')
+    def index():
+        return jsonify({
+            "message": "Wavvy backend is running",
+            "routes": {
+                "health": "/health",
+                "stripe_checkout": "/api/stripe/create-checkout-session",
+                "spotify_login": "/api/spotify/login",
+            },
+        })
     
     @app.get('/health')
     def health():
