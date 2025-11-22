@@ -4,6 +4,12 @@
 from typing import Optional, Dict, Any
 from app.db.supabase_client import supabase
 
+from app.services.stripe_account_service import (
+    create_stripe_customer,
+    create_local_stripe_account_record,
+    delete_stripe_account_by_user_id
+)
+
 if supabase is None:
     raise RuntimeError("Supabase client is not configured")
 
@@ -18,7 +24,8 @@ def _create_base_user(
     last_name: str,
     password_hash: str,
     country: str,
-    role: str) -> Dict[str, Any]:
+    role: str
+    ) -> Dict[str, Any]:
     
     """Helper function to create a base user entry.
     This function inserts a new user into the Users table with the provided details.
@@ -27,17 +34,7 @@ def _create_base_user(
     if role not in ("listener", "advertiser"):
         raise ValueError("role must be listener or advertiser")
     
-    
-    resp = {
-        "email": email,
-        "username": username,
-        "first_name": first_name,
-        "last_name": last_name,
-        "password_hash": password_hash,
-        "country": country,
-        "role": role,
-    }
-    
+    # Step 0: Check if user with the same email already exists in the Users table
     try: 
         existing_user = supabase.table(USERS_TABLE).select("*").eq("email", email).execute()
         if existing_user.data:
@@ -47,31 +44,76 @@ def _create_base_user(
         print(f"Error checking existing user: {e}")
         raise
     
-    response = (
+    # Step 1: Create the base user
+    resp = {
+        "email": email,
+        "username": username,
+        "first_name": first_name,
+        "last_name": last_name,
+        "password_hash": password_hash,
+        "country": country,
+        "role": role,
+    }
+    print(f"Creating user with data: {resp}")
+    user_data = (
         supabase
         .table(USERS_TABLE)
         .insert(resp)
         .execute()
     )
     
-    if "error" in response and response.error:
-        print(f"Error creating user: {response.error.message}")
+    if "error" in user_data and user_data.error:
+        print(f"Error creating user: {user_data.error.message}")
         raise RuntimeError("Failed to create user")
     
-    return response.data[0] if response.data else {}
+    user = user_data.data[0]
+    
+    # step 2: create stripe customer
+    try:
+        print("Creating stripe customer...")
+        stripe_customer_id = create_stripe_customer(
+            email=email,
+            first_name=first_name,
+            last_name=last_name
+        )
+    except Exception as e:
+        # rollback user creation
+        _delete_user_by_id(user_id=user["user_id"])
+        print(f"Error creating stripe customer: {e}")
+        raise RuntimeError("Failed to create stripe customer, user creation rolled back")
+    
+    # step 3: create local stripe account record
+    try:
+        print("Creating local stripe account record...")
+        stripe_record = create_local_stripe_account_record(
+            user_id=user["user_id"],
+            stripe_customer_id=stripe_customer_id
+        )
+    except Exception as e:
+        # rollback user creation and stripe customer
+        _delete_user_by_id(user_id=user["user_id"])
+        delete_stripe_account_by_user_id(user_id=user["user_id"])
+        print(f"Error creating local stripe account record: {e}")
+        raise RuntimeError("Failed to create local stripe account record, user creation rolled back")
+    
+    # return the created user
+    user["stripe_account"] = stripe_record
+    return user
+    
 
 def _delete_user_by_id(user_id: int) -> None:
     """Helper function to delete a user by their ID."""
+    print(f"Deleting user with ID: {user_id}")
     try:
         response = (
             supabase
             .table(USERS_TABLE)
             .delete()
-            .eq("id", user_id)
+            .eq("user_id", user_id)
             .execute()
         )
     except Exception as e:
-        print(f"Error deleting user with ID {user_id}: {response.error.message}")
+        print(f"Error deleting user with ID {user_id}: {e}")
         raise RuntimeError("Failed to delete user")
 
 def create_listener(
