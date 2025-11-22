@@ -1,10 +1,11 @@
 .home-main {
-  min-height: 100vh;
+  height: 100vh; /* Full height to fill viewport */
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: center; /* Center vertically */
+  justify-content: center; /* Center horizontally */
   background: #050816;
   color: #f9fafb;
+  box-sizing: border-box; /* Include padding and border in element's total width and height */
 }
 
 .home-card {
@@ -12,14 +13,14 @@
   border-radius: 1rem;
   background: #111827;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-  max-width: 420px;
+  max-width: 80%;
   text-align: center;
 }
 
-.home-card h1 {
+/* .home-card h1 {
   margin-top: 0;
   margin-bottom: 0.75rem;
-}
+} */
 
 .home-card p {
   margin: 0.5rem 0;
