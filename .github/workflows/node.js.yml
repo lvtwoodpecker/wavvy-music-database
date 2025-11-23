@@ -26,7 +26,9 @@ jobs:
         run: npm install 
         working-directory: frontend/ 
 
-      # - name: Run tests
-      #   # **Crucially, specify the frontend directory**
-      #   run: npm test 
-      #   working-directory: frontend/
+      - name: Run tests
+        # **Crucially, specify the frontend directory**
+        run: npm test 
+        working-directory: frontend/
+        env:
+          CI: true # Ensures that tests run in CI mode
