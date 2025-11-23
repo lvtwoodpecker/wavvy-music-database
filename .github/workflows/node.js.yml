@@ -2,10 +2,10 @@ name: CI Tests
 
 on:
   push:
-    branches: [ master, develop, '**integrate**' ] # Triggers on pushes to master, develop, and integrate branches
+    branches: [ master, develop, '*integrate*' ] # Triggers on push to master, develop, or any branch containing 'integrate'
   pull_request:
-    branches: [ master, develop, '**integrate**' ] # Triggers on pull requests to master, develop, and integrate branches
-
+    branches: [ master, develop, '*integrate*' ] # Triggers on pull request to master, develop, or any branch containing 'integrate'
+    
 jobs:
   test:
     runs-on: ubuntu-latest # Specifies the runner environment
