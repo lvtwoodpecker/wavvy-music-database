@@ -1,0 +1,31 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [ master, develop ] # Triggers on pushes to master and develop branches
+  pull_request:
+    branches: [ master, develop ] # Triggers on pull requests to master and develop branches
+
+jobs:
+  test:
+    runs-on: ubuntu-latest # Specifies the runner environment
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # Checks out your repository
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Or your preferred Node.js version
+          cache: 'npm' # Caches npm dependencies to speed up subsequent runs
+
+      - name: Install dependencies
+        # **Crucially, specify the frontend directory**
+        run: npm install 
+        working-directory: frontend/ 
+
+      - name: Run tests
+        # **Crucially, specify the frontend directory**
+        run: npm test 
+        working-directory: frontend/
