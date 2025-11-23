@@ -31,4 +31,4 @@ jobs:
         run: npm test 
         working-directory: frontend/
         env:
-          CI: true # Ensures that tests run in CI mode 
+          CI: true # Ensures that tests run in CI mode  
