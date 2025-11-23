@@ -15,7 +15,7 @@ jobs:
         uses: actions/frontend/checkout@v4 # Checks out your repository
 
       - name: Setup Node.js
-        uses: actions/frontend/setup-node@v4
+        uses: actions/setup-node@v4
         with:
           node-version: '20' # Or your preferred Node.js version
           cache: 'npm' # Caches npm dependencies to speed up subsequent runs
