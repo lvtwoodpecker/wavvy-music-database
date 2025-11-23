@@ -2,9 +2,9 @@ name: CI Tests
 
 on:
   push:
-    branches: [ master, develop ] # Triggers on pushes to master and develop branches
+    branches: [ master, develop, 'integrate*' ] # Triggers on pushes to master, develop, and integrate branches
   pull_request:
-    branches: [ master, develop ] # Triggers on pull requests to master and develop branches
+    branches: [ master, develop, 'integrate*' ] # Triggers on pull requests to master, develop, and integrate branches
 
 jobs:
   test:
