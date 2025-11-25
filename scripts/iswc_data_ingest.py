@@ -1,45 +1,35 @@
+"""
+ISWC data ingestion script - fetches ISWC codes from MusicBrainz and updates Work records.
+"""
+import sys
 import os
 import time
-from dotenv import load_dotenv
-from supabase import create_client, Client
-import musicbrainzngs
 
-# ---
-# 1. SETUP
-# ---
-load_dotenv()
-supabase_url = os.environ.get("SUPABASE_URL")
-supabase_key = os.environ.get("SUPABASE_SERVICE_KEY")
-if not supabase_url or not supabase_key:
-    raise Exception("Supabase URL or Service Key is missing in .env file")
-supabase: Client = create_client(supabase_url, supabase_key)
+# Add parent directory to path to import app modules
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
+import musicbrainzngs
+from app.db.supabase_client import supabase
+
+if not supabase:
+    raise Exception("Supabase client not initialized")
 
 # Configure MusicBrainz
-# Set your application name and version (required by MusicBrainz)
 musicbrainzngs.set_useragent("Wavvy-ISWC-Ingest", "1.0", "https://github.com/yourusername/wavvy")
-# Set rate limiting (1 request per second to be respectful)
 musicbrainzngs.set_rate_limit(limit_or_interval=1.0)
 
-# ---
-# 2. MUSICBRAINZ HELPER FUNCTIONS
-# ---
+
 def search_iswc_by_isrc(isrc):
-    """
-    Search for ISWC data using ISRC code.
-    Returns ISWC code if found, None otherwise.
-    """
+    """Search for ISWC data using ISRC code."""
     try:
-        # Search for recordings by ISRC
         result = musicbrainzngs.search_recordings(isrc=isrc, limit=1)
         
         if result and 'recording-list' in result and len(result['recording-list']) > 0:
             recording = result['recording-list'][0]
             recording_id = recording['id']
             
-            # Get full recording details including works
             recording_details = musicbrainzngs.get_recording_by_id(recording_id, includes=['work-rels'])
             
-            # Look for ISWC in work relationships
             if 'recording' in recording_details:
                 recording_data = recording_details['recording']
                 if 'work-relation-list' in recording_data:
@@ -49,7 +39,6 @@ def search_iswc_by_isrc(isrc):
                             if 'iswc' in work and work['iswc']:
                                 return work['iswc']
                             
-                            # If no ISWC in relation, try to get work details
                             if 'id' in work:
                                 work_id = work['id']
                                 try:
@@ -66,26 +55,21 @@ def search_iswc_by_isrc(isrc):
         print(f"    > Error searching by ISRC {isrc}: {e}")
         return None
 
+
 def search_iswc_by_title_artist(title, artist_name):
-    """
-    Search for ISWC data using track title and artist name.
-    Returns ISWC code if found, None otherwise.
-    """
+    """Search for ISWC data using track title and artist name."""
     try:
-        # Search for works by title and artist
         result = musicbrainzngs.search_works(work=title, artist=artist_name, limit=5)
         
         if result and 'work-list' in result:
             for work in result['work-list']:
-                # Check if ISWC exists
                 if 'iswc-list' in work and work['iswc-list']:
                     return work['iswc-list'][0]
         
-        # Alternative: search recordings and then get works
         result = musicbrainzngs.search_recordings(recording=title, artist=artist_name, limit=3)
         
         if result and 'recording-list' in result:
-            for recording in result['recording-list'][:3]:  # Check top 3 matches
+            for recording in result['recording-list'][:3]:
                 recording_id = recording['id']
                 try:
                     recording_details = musicbrainzngs.get_recording_by_id(
@@ -102,7 +86,6 @@ def search_iswc_by_title_artist(title, artist_name):
                                     if 'iswc-list' in work and work['iswc-list']:
                                         return work['iswc-list'][0]
                                     
-                                    # Try to get full work details
                                     if 'id' in work:
                                         work_id = work['id']
                                         try:
@@ -121,21 +104,12 @@ def search_iswc_by_title_artist(title, artist_name):
         print(f"    > Error searching by title/artist ({title}, {artist_name}): {e}")
         return None
 
-# ---
-# 3. MAIN ISWC INGESTION FUNCTION
-# ---
+
 def update_works_with_iswc(limit=None, track_id=None):
-    """
-    Updates Work records in the database with ISWC codes from MusicBrainz.
-    
-    Args:
-        limit: Maximum number of tracks to process (None for all)
-        track_id: Specific track_id to update (None for all tracks)
-    """
+    """Updates Work records in the database with ISWC codes from MusicBrainz."""
     try:
         print("Starting ISWC data ingestion from MusicBrainz...")
         
-        # Query tracks that have ISRC but their works don't have ISWC
         query = supabase.from_("Track").select("track_id, title, isrc")
         
         if track_id:
@@ -160,7 +134,6 @@ def update_works_with_iswc(limit=None, track_id=None):
         for idx, track in enumerate(tracks, 1):
             print(f"\n[{idx}/{len(tracks)}] Processing: {track['title']}")
             
-            # Get the work associated with this track
             trackwork_response = supabase.from_("TrackWork").select(
                 "work_id"
             ).eq("track_id", track['track_id']).limit(1).execute()
@@ -171,7 +144,6 @@ def update_works_with_iswc(limit=None, track_id=None):
             
             work_id = trackwork_response.data[0]['work_id']
             
-            # Get work details
             work_response = supabase.from_("Work").select("*").eq("work_id", work_id).limit(1).execute()
             
             if not work_response.data:
@@ -180,23 +152,19 @@ def update_works_with_iswc(limit=None, track_id=None):
             
             work_info = work_response.data[0]
             
-            # Skip if ISWC already exists
             if work_info.get('iswc'):
                 print(f"  > Work already has ISWC: {work_info['iswc']}")
                 continue
             
             iswc = None
             
-            # Try to find ISWC by ISRC first (most reliable)
             if track.get('isrc'):
                 print(f"  > Searching by ISRC: {track['isrc']}")
                 iswc = search_iswc_by_isrc(track['isrc'])
-                time.sleep(1)  # Rate limiting
+                time.sleep(1)
             
-            # If not found by ISRC, try by title and artist
             if not iswc:
                 print(f"  > Searching by title and artist...")
-                # Get artist name from TrackArtist
                 trackartist_response = supabase.from_("TrackArtist").select(
                     "artist_id"
                 ).eq("track_id", track['track_id']).limit(1).execute()
@@ -209,9 +177,8 @@ def update_works_with_iswc(limit=None, track_id=None):
                         artist_name = artist_response.data[0].get('name')
                         if artist_name:
                             iswc = search_iswc_by_title_artist(track['title'], artist_name)
-                            time.sleep(1)  # Rate limiting
+                            time.sleep(1)
             
-            # Update work with ISWC if found
             if iswc:
                 print(f"  > Found ISWC: {iswc}")
                 update_response = supabase.from_("Work").update({
@@ -240,18 +207,9 @@ def update_works_with_iswc(limit=None, track_id=None):
         import traceback
         traceback.print_exc()
 
-# ---
-# 4. BATCH UPDATE FUNCTION (for ISWC Open Data)
-# ---
+
 def update_from_iswc_file(file_path):
-    """
-    Updates works from ISWC Open Data file.
-    Note: You need to download the ISWC Open Data from https://www.iswc.org/open-data
-    and agree to their terms and conditions.
-    
-    Args:
-        file_path: Path to the ISWC data file (CSV format)
-    """
+    """Updates works from ISWC Open Data file."""
     import csv
     
     try:
@@ -270,12 +228,11 @@ def update_from_iswc_file(file_path):
                 if not iswc or not title:
                     continue
                 
-                # Find work by title
                 work_response = supabase.from_("Work").select("*").eq("title", title).execute()
                 
                 if work_response.data:
                     for work in work_response.data:
-                        if not work.get('iswc'):  # Only update if ISWC is missing
+                        if not work.get('iswc'):
                             supabase.from_("Work").update({
                                 "iswc": iswc
                             }).eq("work_id", work['work_id']).execute()
@@ -295,9 +252,7 @@ def update_from_iswc_file(file_path):
         import traceback
         traceback.print_exc()
 
-# ---
-# 5. RUN THE SCRIPT
-# ---
+
 if __name__ == "__main__":
     import sys
     
