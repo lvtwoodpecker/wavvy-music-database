@@ -1,0 +1,34 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [ master, develop, '*intergate*', '*intergation*'] # Triggers on push to master, develop, or any branch containing 'integrate'
+  pull_request:
+    branches: [ master, develop, '*intergate*', '*intergation*'] # Triggers on pull request to master, develop, or any branch containing 'integrate'
+    
+jobs:
+  test:
+    runs-on: ubuntu-latest # Specifies the runner environment
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # Checks out your repository
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Or your preferred Node.js version
+          cache: 'npm' # Caches npm dependencies to speed up subsequent runs
+          cache-dependency-path: frontend/package-lock.json # **Crucially, specify the frontend directory**
+
+      - name: Install dependencies
+        # **Crucially, specify the frontend directory**
+        run: npm install 
+        working-directory: frontend/ 
+
+      - name: Run tests
+        # **Crucially, specify the frontend directory**
+        run: npm test 
+        working-directory: frontend/
+        env:
+          CI: true # Ensures that tests run in CI mode   
