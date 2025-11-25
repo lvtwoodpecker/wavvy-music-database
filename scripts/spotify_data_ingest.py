@@ -170,6 +170,7 @@ def ingest_data(artist_name):
                             }, on_conflict='track_id, genre_id').execute()
 
                 # STEP 3b: Ingest Work Credits
+                isrc = spotify_track['external_ids'].get('isrc')
                 if isrc:
                     try:
                         work_response = supabase.from_("Work").select("*").eq("title", spotify_track['name']).limit(1).execute()
