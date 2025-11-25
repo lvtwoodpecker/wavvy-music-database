@@ -1,7 +1,7 @@
 # app/api/auth_routes.py
 
 from flask import Blueprint, request, jsonify
-from app.services.stripe_create_user_service import get_user_by_email
+from app.services.stripe_get_user_service import get_user_by_email
 
 auth_bp = Blueprint("auth", __name__)
 

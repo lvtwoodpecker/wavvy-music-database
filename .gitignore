@@ -1,1 +1,8 @@
 .env
+node_modules/
+*__pycache__*/
+*.pyc
+.DS_Store
+.vscode/
+.idea/
+coverage/
