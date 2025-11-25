@@ -1,39 +1,28 @@
+"""
+Spotify OAuth token getter - generates tokens with required scopes.
+"""
+import sys
 import os
 import requests
 import base64
 import webbrowser
 from urllib.parse import urlparse, parse_qs, quote
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Add parent directory to path to import app modules
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-# Get credentials from .env or prompt
-CLIENT_ID = os.environ.get("SPOTIFY_CLIENT_ID")
-CLIENT_SECRET = os.environ.get("SPOTIFY_CLIENT_SECRET")
+from app.config import settings
+
+# Get credentials from config or env
+CLIENT_ID = os.environ.get("SPOTIFY_CLIENT_ID") or settings.SPOTIFY_CLIENT_ID_C
+CLIENT_SECRET = os.environ.get("SPOTIFY_CLIENT_SECRET") or settings.SPOTIFY_CLIENT_SECRET_C
 
 if not CLIENT_ID:
     CLIENT_ID = input("Enter your Spotify Client ID: ").strip()
 if not CLIENT_SECRET:
     CLIENT_SECRET = input("Enter your Spotify Client Secret: ").strip()
 
-# IMPORTANT: This redirect URI MUST match exactly what you set in your Spotify app dashboard
-# Spotify requires HTTPS for redirect URIs (except for localhost in some cases)
-# Options:
-# 1. Use a public HTTPS callback service (easiest - no setup needed)
-# 2. Use your own HTTPS domain
-# 3. Use http://localhost (only works if your app allows it)
-
-# Option 1: Use a public callback service (recommended for testing)
-# This service will show you the full callback URL with the code
-REDIRECT_URI = "https://httpbin.org/get"
-
-# Option 2: Use your own domain (if you have one)
-# REDIRECT_URI = "https://yourdomain.com/callback"
-
-# Option 3: Try localhost (may not work if Spotify requires HTTPS)
-# REDIRECT_URI = "http://localhost:8888/callback"
-
+REDIRECT_URI = settings.SPOTIFY_REDIRECT_URI or "https://httpbin.org/get"
 SCOPE = "playlist-read-private playlist-read-collaborative user-read-recently-played"
 
 print("Spotify OAuth Token Getter")
@@ -64,22 +53,19 @@ else:
 
 # Extract code from URL or use directly if from httpbin
 if code is None:
-    # Clean up the URL (remove any extra whitespace or quotes)
     redirect_url = redirect_url.strip('"').strip("'").strip()
     
-    # Extract code from URL
     try:
         parsed = urlparse(redirect_url)
         params = parse_qs(parsed.query)
         code = params.get('code', [None])[0]
         
         if not code:
-            # Try to extract code manually if parse_qs didn't work
             if 'code=' in redirect_url:
                 code = redirect_url.split('code=')[1].split('&')[0]
             
         if not code:
-            print("❌ Error: No authorization code found in URL")
+            print("❌ Error: No authorization code found in URL!")
             exit(1)
         
     except Exception as e:
@@ -105,7 +91,7 @@ headers = {
 data = {
     "grant_type": "authorization_code",
     "code": code,
-    "redirect_uri": REDIRECT_URI  # Must match exactly what was used in auth URL
+    "redirect_uri": REDIRECT_URI
 }
 
 try:
@@ -135,3 +121,4 @@ try:
         
 except Exception as e:
     print(f"❌ Network error: {e}")
+
