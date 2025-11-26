@@ -162,7 +162,12 @@ def ingest_data(artist_name):
                         print(f"      > Added song info: {', '.join(msg_parts)}")
 
                 # STEP 3b: Ingest Work Credits
-                isrc = spotify_track['external_ids'].get('isrc')
+                # Note: Tracks from album track list may not have external_ids, so we need to fetch full track data
+                # or use the isrc from the already-ingested track
+                isrc = spotify_track.get('external_ids', {}).get('isrc')
+                if not isrc and db_track.get('isrc'):
+                    isrc = db_track['isrc']
+                
                 if isrc:
                     try:
                         work_response = supabase.from_("Work").select("*").eq("title", spotify_track['name']).limit(1).execute()

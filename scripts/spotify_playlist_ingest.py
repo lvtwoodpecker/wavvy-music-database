@@ -30,11 +30,25 @@ def get_or_create_user(username="cedricster", email=None, country="US"):
     
     password_hash = hashlib.sha256(f"{username}_demo_password".encode()).hexdigest()
     
+    # Derive first_name and last_name from username (capitalize first letter)
+    # If username has multiple parts, use first as first_name, rest as last_name
+    name_parts = username.split('_')
+    if len(name_parts) > 1:
+        first_name = name_parts[0].capitalize()
+        last_name = '_'.join(name_parts[1:]).capitalize()
+    else:
+        first_name = username.capitalize()
+        last_name = "User"
+    
     user_data = {
         "username": username,
         "email": email,
         "password_hash": password_hash,
-        "country": country
+        "country": country,
+        "role": "listener",  # Required: must be 'listener' or 'advertiser'
+        "first_name": first_name,  # Required
+        "last_name": last_name,  # Required
+        "status": "active"  # Required: USER-DEFINED enum type
     }
     
     existing_user = supabase.from_("User").select("*").eq("username", username).limit(1).execute()
@@ -62,8 +76,7 @@ def get_or_create_listener(user_id):
     
     listener_data = {
         "user_id": user_id,
-        "ad_free": False,
-        "payment_amt": 0.00
+        "ad_free": False
     }
     
     listener_response = supabase.from_("Listener").insert(listener_data).execute()
@@ -329,27 +342,8 @@ def ingest_playlist_from_spotify(playlist_data, listener_id, user_token, max_tra
                         token=client_token
                     )
                     
-                    # Fetch album cover if album was created
-                    if spotify_track.get('album'):
-                        from app.services.album_cover_service import fetch_and_store_album_cover
-                        from app.services.spotify_service import fetch_spotify_api
-                        # Get album_id from AlbumTrack relationship
-                        at_response = supabase.from_("AlbumTrack").select("album_id").eq("track_id", db_track['track_id']).limit(1).execute()
-                        if at_response.data:
-                            album_id = at_response.data[0]['album_id']
-                            # Fetch full album data for cover
-                            album_id_spotify = spotify_track['album'].get('id')
-                            if album_id_spotify:
-                                try:
-                                    full_album_data = fetch_spotify_api(f"albums/{album_id_spotify}", client_token)
-                                    fetch_and_store_album_cover(
-                                        album_id=album_id,
-                                        spotify_album_data=full_album_data,
-                                        token=client_token,
-                                        skip_if_exists=True
-                                    )
-                                except Exception:
-                                    pass  # Silently fail if cover fetch fails
+                    # Note: Album and cover are automatically ingested by ingest_track_from_spotify
+                    # when ingest_album=True (which is the default)
                     
                     time.sleep(0.2)
                 else:
@@ -422,7 +416,7 @@ def ingest_playlists_from_spotify_api(username="cedricster", user_token=None, li
         traceback.print_exc()
 
 
-def ingest_listening_history(username="cedricster", user_token=None, limit=50, max_tracks_to_ingest=10):
+def ingest_listening_history(username="cedricster", user_token=None, limit=50):
     """Ingest user's listening history from Spotify into PlayHistory table."""
     if not user_token:
         print("ERROR: User access token is required.")
@@ -479,9 +473,9 @@ def ingest_listening_history(username="cedricster", user_token=None, limit=50, m
             
             db_track = find_track_by_isrc_or_title(isrc=isrc, title=track_title, duration_ms=duration_ms)
             
-            if not db_track and client_token and ingested_count < max_tracks_to_ingest:
+            if not db_track and client_token:
                 print(f"  [{idx}] Track not in database, attempting to ingest: {track_title}")
-                db_track = ingest_track_from_spotify(spotify_track, token=client_token)
+                db_track = ingest_track_from_spotify(spotify_track, token=client_token, ingest_album=True)
                 if db_track:
                     ingested_count += 1
                     print(f"    > Successfully ingested track: {track_title}")
