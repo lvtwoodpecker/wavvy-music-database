@@ -1,0 +1,40 @@
+# app/api/__init__.py
+from app.api.stripe_routes import StripeRoutes
+from app.api.user_routes import UserRoutes
+from app.api.auth_routes import AuthRoutes
+
+class WavvyAPIBlueprints():
+    @staticmethod
+    def register_blueprints(app) -> None:
+        """Register all blueprints for the app."""
+        registers_routes = {
+            'stripe': StripeRoutes(app),
+            'users': UserRoutes(app),
+            'auth': AuthRoutes(app)
+        }
+        
+        for route_name, route_class in registers_routes.items():
+            bp = route_class.create_blueprint(app)
+            app.register_blueprint(bp, url_prefix=f'/api/{route_name}')
+            
+    @staticmethod
+    def register_all(app) -> None:
+        WavvyAPIBlueprints.register_blueprints(app)
+        
+    @staticmethod
+    def register_auth(app) -> None:
+        auth_routes = AuthRoutes(app)
+        bp = auth_routes.create_blueprint(app)
+        app.register_blueprint(bp, url_prefix='/api/auth')
+        
+    @staticmethod
+    def register_users(app) -> None:
+        user_routes = UserRoutes(app)
+        bp = user_routes.create_blueprint(app)
+        app.register_blueprint(bp, url_prefix='/api/users')
+        
+    @staticmethod
+    def register_stripe(app) -> None:
+        stripe_routes = StripeRoutes(app)
+        bp = stripe_routes.create_blueprint(app)
+        app.register_blueprint(bp, url_prefix='/api/stripe')

@@ -10,12 +10,13 @@ import time
 # Add parent directory to path to import app modules
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from app.db.supabase_client import supabase
-from app.services.audio_features_service import fetch_and_save_audio_features
+from app import WavvyAPIWrapper
+from app.api import WavvyAPIBlueprints
+from app.services.register_services import APIServices
 
-if not supabase:
-    raise Exception("Supabase client not initialized")
-
+APP = WavvyAPIWrapper(__name__).create_dev_app()
+APP._services = APIServices(APP)
+WavvyAPIBlueprints.register_blueprints(APP)
 
 def ingest_audio_features(limit=None, track_id=None):
     """
@@ -29,7 +30,7 @@ def ingest_audio_features(limit=None, track_id=None):
         print("Starting audio features ingestion from ReccoBeats API...")
         
         # Query tracks that don't have audio features yet
-        query = supabase.from_("Track").select("track_id, title, duration_ms")
+        query = APP.supabase.from_("Track").select("track_id, title, duration_ms")
         
         if track_id:
             query = query.eq("track_id", track_id)

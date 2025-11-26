@@ -1,10 +1,13 @@
 from supabase import create_client, Client
-from app.config import settings
-
-supabase: Client | None = None
-
-if settings.SUPABASE_URL and settings.SUPABASE_SERVICE_KEY:
-    # Initialize Supabase client
-    supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
-else:
-    print("[Supabase] Missing SUPABASE_URL or SUPABASE_SERVICE_KEY in env")
+class SupabaseClient:
+    @staticmethod
+    def init_supabase(supabase_url: str, supabase_key: str) -> Client | None:
+        if supabase_url and supabase_key:
+            # Initialize Supabase client
+            # Attach to app for global access
+            # This allows accessing supabase client via app.supabase
+            supabase_client = create_client(supabase_url, supabase_key)
+            return supabase_client
+        else:
+            print("[Supabase] Missing SUPABASE_URL or SUPABASE_SERVICE_KEY in env")
+            return None

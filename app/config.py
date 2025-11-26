@@ -29,4 +29,3 @@ class Settings:
     
     SPOTIFY_REDIRECT_URI: str = os.getenv("SPOTIFY_REDIRECT_URI", "http://localhost:8888/callback")
     
-settings = Settings()
