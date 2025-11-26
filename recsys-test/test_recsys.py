@@ -3,14 +3,18 @@ Test script for the recommendation system.
 """
 import sys
 import os
+import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from recsys import ContentBasedRecommender
 from app.db.supabase_client import supabase
 
-if not supabase:
-    raise Exception("Supabase client not initialized")
+# Skip all tests if Supabase is not initialized
+pytestmark = pytest.mark.skipif(
+    not supabase,
+    reason="Supabase client not initialized - missing SUPABASE_URL or SUPABASE_SERVICE_KEY"
+)
 
 
 def test_playlist_recommendations():
