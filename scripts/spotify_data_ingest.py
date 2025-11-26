@@ -16,7 +16,11 @@ from app.services.spotify_service import (
     get_preview_url_workaround,
     ingest_track_from_spotify
 )
-from app.services.audio_features_service import fetch_and_save_audio_features
+from app.services.track_info_and_relationship_service import (
+    add_song_info,
+    link_album_artists,
+    ensure_artist_genres
+)
 from app.db.supabase_client import supabase
 
 if not supabase:
@@ -53,17 +57,13 @@ def ingest_data(artist_name):
             raise Exception(f"Failed to insert artist: {response.error.message if response.error else 'No data returned'}")
 
         # STEP 1a: Ingest Genres for Artist
-        artist_genres = spotify_artist.get('genres', [])
-        for genre_name in artist_genres:
-            if genre_name:
-                genre_response = supabase.from_("Genre").upsert({"name": genre_name}, on_conflict='name').execute()
-                if genre_response.data:
-                    db_genre = genre_response.data[0]
-                    supabase.from_("ArtistGenre").upsert({
-                        "artist_id": db_artist['artist_id'],
-                        "genre_id": db_genre['genre_id']
-                    }, on_conflict='artist_id, genre_id').execute()
-                    print(f"  > Linked Genre: {db_genre['name']} to Artist")
+        genres_linked = ensure_artist_genres(
+            artist_id=db_artist['artist_id'],
+            spotify_artist_id=spotify_artist['id'],
+            token=token
+        )
+        if genres_linked > 0:
+            print(f"  > Linked {genres_linked} genre(s) to Artist")
 
         # STEP 2: Ingest Albums
         print(f"Fetching albums for {db_artist['name']}...")
@@ -109,11 +109,14 @@ def ingest_data(artist_name):
             db_album = album_response.data[0]
             print(f"  > Ingested Album: {db_album['title']}")
 
-            # Link Album and Artist
-            supabase.from_("AlbumArtist").upsert({
-                "album_id": db_album['album_id'],
-                "artist_id": db_artist['artist_id']
-            }, on_conflict='album_id, artist_id').execute()
+            # Link Album and Artist(s) - all artists on the album
+            album_artists_linked = link_album_artists(
+                album_id=db_album['album_id'],
+                spotify_album_data=full_album_data,
+                token=token
+            )
+            if album_artists_linked > 0:
+                print(f"  > Linked {album_artists_linked} artist(s) to Album")
 
             # Ingest Tracks
             for spotify_track in full_album_data['tracks']['items']:
@@ -134,40 +137,19 @@ def ingest_data(artist_name):
                     "track_no": spotify_track['track_number']
                 }, on_conflict='album_id, track_id').execute()
 
-                # Link Track to Artist (if not already linked by ingest_track_from_spotify)
-                supabase.from_("TrackArtist").upsert({
-                    "track_id": db_track['track_id'],
-                    "artist_id": db_artist['artist_id'],
-                    "role": 'Main'
-                }, on_conflict='track_id, artist_id, role').execute()
+                # Add song info: audio features, genres, etc.
+                info_results = add_song_info(
+                    track_id=db_track['track_id'],
+                    spotify_track_data=spotify_track,
+                    token=token
+                )
                 
-                # Fetch and save audio features
-                try:
-                    artist_name = db_artist.get('name')
-                    success = fetch_and_save_audio_features(
-                        track_id=db_track['track_id'],
-                        track_title=db_track['title'],
-                        artist_name=artist_name,
-                        duration_ms=db_track['duration_ms'],
-                        spotify_track_id=db_track.get('spotify_id') or spotify_track['id']
-                    )
-                    if success:
-                        print(f"      > Fetched and saved audio features")
-                    else:
-                        print(f"      > Could not fetch audio features")
-                except Exception as e:
-                    print(f"      > Error fetching audio features: {e}")
-
-                # STEP 3a: Link Genres to Track
-                for genre_name in artist_genres:
-                    if genre_name:
-                        genre_response = supabase.from_("Genre").select("*").eq("name", genre_name).limit(1).execute()
-                        if genre_response.data:
-                            db_genre = genre_response.data[0]
-                            supabase.from_("TrackGenre").upsert({
-                                "track_id": db_track['track_id'],
-                                "genre_id": db_genre['genre_id']
-                            }, on_conflict='track_id, genre_id').execute()
+                if info_results['success']:
+                    features_msg = "audio features" if info_results['audio_features'] else ""
+                    genres_msg = "genres" if info_results['genres'] else ""
+                    msg_parts = [m for m in [features_msg, genres_msg] if m]
+                    if msg_parts:
+                        print(f"      > Added song info: {', '.join(msg_parts)}")
 
                 # STEP 3b: Ingest Work Credits
                 isrc = spotify_track['external_ids'].get('isrc')

@@ -11,7 +11,7 @@ import time
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from app.db.supabase_client import supabase
-from app.services.audio_features_service import fetch_and_save_audio_features
+from app.services.track_info_and_relationship_service import fetch_and_save_audio_features
 
 if not supabase:
     raise Exception("Supabase client not initialized")

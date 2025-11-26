@@ -27,6 +27,6 @@ class Settings:
     SPOTIFY_CLIENT_ID_C: str = os.getenv("SPOTIFY_CLIENT_ID_C", "") # Cedric's client id
     SPOTIFY_CLIENT_SECRET_C: str = os.getenv("SPOTIFY_CLIENT_SECRET_C", "") # Cedric's client secret
     
-    SPOTIFY_REDIRECT_URI: str = os.getenv("SPOTIFY_REDIRECT_URI", "http://localhost:8888/callback")
+    SPOTIFY_REDIRECT_URI: str = os.getenv("SPOTIFY_REDIRECT_URI", "https://httpbin.org/get")
     
 settings = Settings()

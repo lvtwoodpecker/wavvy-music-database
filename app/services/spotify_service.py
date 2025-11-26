@@ -78,6 +78,11 @@ def fetch_spotify_api(endpoint, token, retry_count=0, max_retries=2):
             else:
                 raise Exception(f"Spotify API Rate Limit: Max retries exceeded")
         
+        if response.status_code == 401:
+            error_data = response.json() if response.text else {}
+            error_msg = error_data.get('error', {}).get('message', 'Unauthorized')
+            raise Exception(f"Spotify API Unauthorized (401): {error_msg}. The access token expired or is invalid.")
+        
         if response.status_code == 403:
             error_data = response.json() if response.text else {}
             error_msg = error_data.get('error', {}).get('message', 'Forbidden')
@@ -168,6 +173,15 @@ def ingest_track_from_spotify(spotify_track, token=None):
                 update_response = supabase.from_("Track").update(update_data).eq("track_id", db_track['track_id']).execute()
                 if update_response.data:
                     db_track = update_response.data[0]
+            
+            # Ensure all track artists are linked (even for existing tracks)
+            from app.services.track_info_and_relationship_service import link_track_artists
+            link_track_artists(
+                track_id=db_track['track_id'],
+                spotify_track_data=spotify_track,
+                token=token
+            )
+            
             return db_track
         else:
             # Insert new track
@@ -184,18 +198,12 @@ def ingest_track_from_spotify(spotify_track, token=None):
             db_track = track_response.data[0]
             
             # Link track to artist(s) if available
-            artists = spotify_track.get('artists', [])
-            for artist_data in artists:
-                artist_name = artist_data.get('name')
-                if artist_name:
-                    artist_response = supabase.from_("Artist").select("*").eq("name", artist_name).limit(1).execute()
-                    if artist_response.data:
-                        db_artist = artist_response.data[0]
-                        supabase.from_("TrackArtist").upsert({
-                            "track_id": db_track['track_id'],
-                            "artist_id": db_artist['artist_id'],
-                            "role": 'Main' if artists.index(artist_data) == 0 else 'Featured'
-                        }, on_conflict='track_id, artist_id, role').execute()
+            from app.services.track_info_and_relationship_service import link_track_artists
+            link_track_artists(
+                track_id=db_track['track_id'],
+                spotify_track_data=spotify_track,
+                token=token
+            )
             
             return db_track
     except Exception as e:
