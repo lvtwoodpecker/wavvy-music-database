@@ -6,6 +6,7 @@ import base64
 import time
 import requests
 from datetime import datetime, timezone
+from typing import Dict, Optional
 from bs4 import BeautifulSoup
 from app.config import settings
 from app.db.supabase_client import supabase
@@ -124,13 +125,90 @@ def get_preview_url_workaround(track_id):
         return None
 
 
-def ingest_track_from_spotify(spotify_track, token=None):
+def _ingest_album_and_label_from_track(spotify_track: Dict, db_track: Dict, token: str):
+    """Helper function to ingest album and label from a track's album data."""
+    try:
+        spotify_album = spotify_track.get('album')
+        if not spotify_album:
+            return
+        
+        # Get full album data if we only have basic info
+        album_id = spotify_album.get('id')
+        if not album_id:
+            return
+        
+        # Fetch full album data to get label
+        full_album_data = fetch_spotify_api(f"albums/{album_id}", token)
+        label_name = full_album_data.get('label', 'Unknown Label')
+        
+        # Ingest Label
+        label_response = supabase.from_("Label").upsert({"name": label_name}, on_conflict='name').execute()
+        db_label = label_response.data[0] if label_response.data else None
+        
+        if not db_label:
+            return
+        
+        # Ingest Album
+        release_date_str = full_album_data.get('release_date', '')
+        precision = full_album_data.get('release_date_precision', 'day')
+        
+        formatted_release_date = None
+        if release_date_str:
+            if precision == 'year':
+                formatted_release_date = f"{release_date_str}-01-01"
+            elif precision == 'month':
+                formatted_release_date = f"{release_date_str}-01"
+            elif precision == 'day':
+                formatted_release_date = release_date_str
+        
+        album_to_insert = {
+            "title": full_album_data.get('name', ''),
+            "release_date": formatted_release_date,
+            "type": full_album_data.get('album_type', 'album'),
+            "label_id": db_label['label_id']
+        }
+        
+        album_response = supabase.from_("Album").select("*").eq("title", album_to_insert['title']).limit(1).execute()
+        
+        if album_response.data:
+            db_album = album_response.data[0]
+        else:
+            album_insert_response = supabase.from_("Album").insert(album_to_insert).execute()
+            if album_insert_response.data:
+                db_album = album_insert_response.data[0]
+            else:
+                return
+        
+        # Link Album to Artists
+        from app.services.track_info_and_relationship_service import link_album_artists
+        link_album_artists(
+            album_id=db_album['album_id'],
+            spotify_album_data=full_album_data,
+            token=token
+        )
+        
+        # Link Track to Album
+        supabase.from_("AlbumTrack").upsert({
+            "album_id": db_album['album_id'],
+            "track_id": db_track['track_id'],
+            "disc_no": spotify_track.get('disc_number', 1),
+            "track_no": spotify_track.get('track_number', 1)
+        }, on_conflict='album_id, track_id').execute()
+        
+    except Exception:
+        # Silently fail - album/label ingestion is optional
+        pass
+
+
+def ingest_track_from_spotify(spotify_track, token=None, ingest_album=True):
     """
     Ingest a single track from Spotify API data into the database.
+    Handles track creation/update, artist linking, album/label ingestion, and metadata.
     
     Args:
         spotify_track: Track object from Spotify API
         token: Spotify access token (if None, will get client credentials token)
+        ingest_album: Whether to ingest album and label information (default: True)
     
     Returns:
         Database track record or None if failed
@@ -182,6 +260,10 @@ def ingest_track_from_spotify(spotify_track, token=None):
                 token=token
             )
             
+            # Ingest album and label if requested
+            if ingest_album and spotify_track.get('album'):
+                _ingest_album_and_label_from_track(spotify_track, db_track, token)
+            
             return db_track
         else:
             # Insert new track
@@ -204,6 +286,10 @@ def ingest_track_from_spotify(spotify_track, token=None):
                 spotify_track_data=spotify_track,
                 token=token
             )
+            
+            # Ingest album and label if requested
+            if ingest_album and spotify_track.get('album'):
+                _ingest_album_and_label_from_track(spotify_track, db_track, token)
             
             return db_track
     except Exception as e:
