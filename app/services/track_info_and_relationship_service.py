@@ -71,8 +71,7 @@ def _fetch_and_save_audio_features(track_id: int, track_title: str,
         
         return False
         
-    except Exception as e:
-        print(f"      > Error fetching/saving audio features: {e}")
+    except Exception:
         return False
 
 
@@ -251,48 +250,64 @@ def ensure_artist_genres(artist_id: int, spotify_artist_id: Optional[str] = None
     if not token:
         token = get_spotify_token()
     
-    # Get artist name to search Spotify if needed
     artist_response = supabase.from_("Artist").select("name").eq("artist_id", artist_id).limit(1).execute()
     if not artist_response.data:
         return 0
     
     artist_name = artist_response.data[0]['name']
     
-    # Try to get Spotify artist ID if not provided
     if not spotify_artist_id:
         try:
             search_data = fetch_spotify_api(f"search?q={artist_name}&type=artist&limit=1", token)
             if search_data.get('artists', {}).get('items'):
                 spotify_artist_id = search_data['artists']['items'][0]['id']
         except Exception:
-            pass
+            return 0
     
     if not spotify_artist_id:
         return 0
     
-    # Fetch artist data from Spotify
     try:
         artist_data = fetch_spotify_api(f"artists/{spotify_artist_id}", token)
         artist_genres = artist_data.get('genres', [])
+        
+        if not artist_genres:
+            try:
+                related_artists_response = fetch_spotify_api(f"artists/{spotify_artist_id}/related-artists", token)
+                all_genres = set()
+                for related_artist in related_artists_response.get('artists', [])[:10]:
+                    related_genres = related_artist.get('genres', [])
+                    if related_genres:
+                        all_genres.update(related_genres)
+                if all_genres:
+                    artist_genres = list(all_genres)[:5]
+            except Exception:
+                return 0
+        
+        if not artist_genres:
+            return 0
+        
+        genres_linked = 0
+        for genre_name in artist_genres:
+            if not genre_name:
+                continue
+            
+            try:
+                genre_response = supabase.from_("Genre").upsert({"name": genre_name}, on_conflict='name').execute()
+                if genre_response.data:
+                    db_genre = genre_response.data[0]
+                    ag_response = supabase.from_("ArtistGenre").upsert({
+                        "artist_id": artist_id,
+                        "genre_id": db_genre['genre_id']
+                    }, on_conflict='artist_id, genre_id').execute()
+                    if ag_response.data or not ag_response.error:
+                        genres_linked += 1
+            except Exception:
+                pass
+        
+        return genres_linked
     except Exception:
         return 0
-    
-    genres_linked = 0
-    for genre_name in artist_genres:
-        if not genre_name:
-            continue
-        
-        # Get or create genre
-        genre_response = supabase.from_("Genre").upsert({"name": genre_name}, on_conflict='name').execute()
-        if genre_response.data:
-            db_genre = genre_response.data[0]
-            supabase.from_("ArtistGenre").upsert({
-                "artist_id": artist_id,
-                "genre_id": db_genre['genre_id']
-            }, on_conflict='artist_id, genre_id').execute()
-            genres_linked += 1
-    
-    return genres_linked
 
 
 def add_song_info(track_id: int, spotify_track_data: Optional[Dict] = None, 
@@ -300,20 +315,7 @@ def add_song_info(track_id: int, spotify_track_data: Optional[Dict] = None,
     """
     Add song information: audio features, genres, and other related metadata.
     This is a one-stop method to ensure a track has all its metadata.
-    
-    Args:
-        track_id: Database track_id
-        spotify_track_data: Optional full Spotify track object (if available)
-        spotify_track_id: Optional Spotify track ID (if not in spotify_track_data)
-        token: Optional Spotify token (will fetch if not provided)
-    
-    Returns:
-        Dictionary with results:
-        {
-            'audio_features': bool,  # True if audio features were fetched/saved
-            'genres': bool,          # True if genres were linked
-            'success': bool          # True if at least one info addition succeeded
-        }
+
     """
     results = {
         'audio_features': False,
@@ -338,8 +340,7 @@ def add_song_info(track_id: int, spotify_track_data: Optional[Dict] = None,
     if not token:
         try:
             token = get_spotify_token()
-        except Exception as e:
-            print(f"      > Could not get Spotify token: {e}")
+        except Exception:
             return results
     
     # Get artist name for better matching

@@ -6,3 +6,4 @@ musicbrainzngs
 Flask
 stripe
 dotenv
+numpy
