@@ -317,7 +317,7 @@ def ingest_playlist_from_spotify(playlist_data, listener_id, user_token, max_tra
             
             if not db_track and client_token and ingested_count < max_tracks_to_ingest:
                 print(f"    [{idx}] Track not in database, attempting to ingest: {track_title}")
-                db_track = ingest_track_from_spotify(spotify_track, token=client_token)
+                db_track = ingest_track_from_spotify(spotify_track, token=client_token, ingest_album=True)
                 if db_track:
                     ingested_count += 1
                     print(f"      > Successfully ingested track: {track_title}")
@@ -328,6 +328,28 @@ def ingest_playlist_from_spotify(playlist_data, listener_id, user_token, max_tra
                         spotify_track_data=spotify_track,
                         token=client_token
                     )
+                    
+                    # Fetch album cover if album was created
+                    if spotify_track.get('album'):
+                        from app.services.album_cover_service import fetch_and_store_album_cover
+                        from app.services.spotify_service import fetch_spotify_api
+                        # Get album_id from AlbumTrack relationship
+                        at_response = supabase.from_("AlbumTrack").select("album_id").eq("track_id", db_track['track_id']).limit(1).execute()
+                        if at_response.data:
+                            album_id = at_response.data[0]['album_id']
+                            # Fetch full album data for cover
+                            album_id_spotify = spotify_track['album'].get('id')
+                            if album_id_spotify:
+                                try:
+                                    full_album_data = fetch_spotify_api(f"albums/{album_id_spotify}", client_token)
+                                    fetch_and_store_album_cover(
+                                        album_id=album_id,
+                                        spotify_album_data=full_album_data,
+                                        token=client_token,
+                                        skip_if_exists=True
+                                    )
+                                except Exception:
+                                    pass  # Silently fail if cover fetch fails
                     
                     time.sleep(0.2)
                 else:

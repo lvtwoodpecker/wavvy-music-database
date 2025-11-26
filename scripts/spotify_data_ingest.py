@@ -117,6 +117,16 @@ def ingest_data(artist_name):
             )
             if album_artists_linked > 0:
                 print(f"  > Linked {album_artists_linked} artist(s) to Album")
+            
+            # Fetch and store album cover
+            from app.services.album_cover_service import fetch_and_store_album_cover
+            if fetch_and_store_album_cover(
+                album_id=db_album['album_id'],
+                spotify_album_data=full_album_data,
+                token=token,
+                skip_if_exists=True
+            ):
+                print(f"  > Stored album cover")
 
             # Ingest Tracks
             for spotify_track in full_album_data['tracks']['items']:
