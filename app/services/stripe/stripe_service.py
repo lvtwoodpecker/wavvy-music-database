@@ -25,8 +25,8 @@ class StripeService(service.Service):
         
     # --- Private Methods ---
     def _create_stripe_checkout_service(self) -> StripeCheckoutService:
-        front_end_url = self.settings.FRONTEND_URL
-        return StripeCheckoutService(front_end_url=front_end_url)
+        back_end_url = self.settings.BACKEND_URL
+        return StripeCheckoutService(front_end_url=back_end_url)
     
     def _create_stripe_account_service(self) -> StripeAccountService:
         return StripeAccountService(stripe_api_key=self.settings.STRIPE_API_KEY)

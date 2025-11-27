@@ -10,7 +10,7 @@ class Settings:
     ENV: str = os.getenv("FLASK_ENV", "development")
     
     # FRONTEND settings
-    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    BACKEND_URL: str = os.getenv("BACKEND_URL", "http://localhost:3000")
     
     # PAYMENTS / STRIPE settings
     PAYMENTS_PROVIDER: str = os.getenv("PAYMENTS_PROVIDER", "stripe")

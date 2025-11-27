@@ -1,4 +1,5 @@
-from supabase import create_client, Client
+from supabase import Client, create_client
+
 class SupabaseClient:
     @staticmethod
     def init_supabase(supabase_url: str, supabase_key: str) -> Client | None:

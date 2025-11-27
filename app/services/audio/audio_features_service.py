@@ -3,14 +3,15 @@ Service for managing audio features in the database.
 Handles fetching and storing audio features using ReccoBeats API.
 """
 from typing import Optional, Dict
-from app.db.supabase_client import supabase
-from app.services.reccobeats_service import ReccoBeatsService
+from app.services.audio.reccobeats_service import ReccoBeatsService
 
 if not supabase:
     raise Exception("Supabase client not initialized")
 
 
-def fetch_and_save_audio_features(track_id: int, track_title: str, 
+def fetch_and_save_audio_features(
+    supabase,
+    track_id: int, track_title: str, 
                                   artist_name: Optional[str] = None,
                                   duration_ms: Optional[int] = None,
                                   spotify_track_id: Optional[str] = None) -> bool:
