@@ -7,6 +7,7 @@ CREATE TABLE public.AdCampaign (
   name character varying NOT NULL,
   budget numeric NOT NULL CHECK (budget > 0::numeric),
   status character varying NOT NULL DEFAULT 'draft'::character varying CHECK (status::text = ANY (ARRAY['draft'::character varying, 'active'::character varying, 'paused'::character varying, 'completed'::character varying]::text[])),
+  target_country text,
   CONSTRAINT AdCampaign_pkey PRIMARY KEY (campaign_id),
   CONSTRAINT fk_advertiser FOREIGN KEY (advertiser_id) REFERENCES public.Advertiser(advertiser_id)
 );
@@ -14,6 +15,8 @@ CREATE TABLE public.AdClick (
   impression_id uuid NOT NULL,
   click_time timestamp with time zone NOT NULL DEFAULT now(),
   redirect_url character varying,
+  country_code text,
+  device_type text,
   CONSTRAINT AdClick_pkey PRIMARY KEY (impression_id),
   CONSTRAINT fk_impression FOREIGN KEY (impression_id) REFERENCES public.AdImpression(impression_id)
 );
@@ -23,6 +26,8 @@ CREATE TABLE public.AdCreative (
   creative_type character varying NOT NULL CHECK (creative_type::text = ANY (ARRAY['audio'::character varying, 'video'::character varying, 'display'::character varying]::text[])),
   asset_url character varying NOT NULL CHECK (asset_url::text ~* '^https?://'::text),
   headline character varying,
+  language text,
+  format text,
   CONSTRAINT AdCreative_pkey PRIMARY KEY (creative_id),
   CONSTRAINT fk_campaign FOREIGN KEY (campaign_id) REFERENCES public.AdCampaign(campaign_id)
 );
@@ -31,12 +36,17 @@ CREATE TABLE public.AdImpression (
   creative_id bigint NOT NULL,
   served_at timestamp with time zone NOT NULL DEFAULT now(),
   view_time_ms integer,
+  device_type text,
+  interaction_type text,
   CONSTRAINT AdImpression_pkey PRIMARY KEY (impression_id),
   CONSTRAINT fk_creative FOREIGN KEY (creative_id) REFERENCES public.AdCreative(creative_id)
 );
 CREATE TABLE public.Advertiser (
   advertiser_id bigint NOT NULL DEFAULT nextval('"Advertiser_advertiser_id_seq"'::regclass),
   user_id bigint NOT NULL UNIQUE,
+  company_name text,
+  advertiser_type text,
+  industry_category text,
   CONSTRAINT Advertiser_pkey PRIMARY KEY (advertiser_id),
   CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES public.User(user_id)
 );
@@ -46,6 +56,7 @@ CREATE TABLE public.Album (
   release_date date CHECK (release_date IS NULL OR release_date <= CURRENT_DATE),
   type character varying CHECK (type::text = ANY (ARRAY['album'::character varying, 'single'::character varying, 'compilation'::character varying, 'EP'::character varying]::text[])),
   label_id integer,
+  cover_image_url text,
   CONSTRAINT Album_pkey PRIMARY KEY (album_id),
   CONSTRAINT fk_label FOREIGN KEY (label_id) REFERENCES public.Label(label_id)
 );
@@ -137,8 +148,17 @@ CREATE TABLE public.Listener (
   listener_id uuid NOT NULL DEFAULT gen_random_uuid(),
   user_id bigint UNIQUE,
   ad_free boolean NOT NULL DEFAULT false,
-  payment_amt numeric NOT NULL DEFAULT 0.00 CHECK (payment_amt >= 0::numeric),
-  CONSTRAINT Listener_pkey PRIMARY KEY (listener_id)
+  CONSTRAINT Listener_pkey PRIMARY KEY (listener_id),
+  CONSTRAINT Listener_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.User(user_id)
+);
+CREATE TABLE public.ModelCache (
+  model_id integer NOT NULL DEFAULT nextval('modelcache_model_id_seq'::regclass),
+  model_name character varying NOT NULL DEFAULT 'content_based_similarity'::character varying UNIQUE,
+  model_data bytea NOT NULL,
+  metadata jsonb NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT ModelCache_pkey PRIMARY KEY (model_id)
 );
 CREATE TABLE public.PlayHistory (
   listener_id uuid NOT NULL,
@@ -177,19 +197,22 @@ CREATE TABLE public.Session (
   user_id bigint NOT NULL,
   start_time timestamp with time zone NOT NULL DEFAULT now(),
   end_time timestamp with time zone,
+  device_type text,
   CONSTRAINT Session_pkey PRIMARY KEY (session_id),
   CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES public.User(user_id)
 );
 CREATE TABLE public.StripeAccount (
-  stripe_id character varying NOT NULL,
   user_id bigint NOT NULL,
   is_default boolean NOT NULL DEFAULT true,
+  stripe_customer_id text NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  stripe_id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
   CONSTRAINT StripeAccount_pkey PRIMARY KEY (stripe_id),
   CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES public.User(user_id)
 );
 CREATE TABLE public.StripeInvoice (
   invoice_id character varying NOT NULL,
-  stripe_id character varying NOT NULL,
+  stripe_id bigint NOT NULL,
   amount_cents integer NOT NULL CHECK (amount_cents > 0),
   date_processed timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT StripeInvoice_pkey PRIMARY KEY (invoice_id),
@@ -207,9 +230,9 @@ CREATE TABLE public.Track (
   title character varying NOT NULL,
   duration_ms integer NOT NULL,
   isrc character varying UNIQUE,
-  spotify_id character varying UNIQUE,
   audio_file_url text,
   date_added timestamp with time zone NOT NULL DEFAULT now(),
+  spotify_id character varying UNIQUE,
   CONSTRAINT Track_pkey PRIMARY KEY (track_id)
 );
 CREATE TABLE public.TrackArtist (
@@ -240,12 +263,18 @@ CREATE TABLE public.User (
   email character varying NOT NULL UNIQUE CHECK (email::text ~* '^[^@]+@[^@]+\.[^@]+$'::text),
   password_hash character varying NOT NULL,
   country character NOT NULL CHECK (country ~ '^[A-Z]{2}$'::text),
+  role text NOT NULL CHECK (role = ANY (ARRAY['listener'::text, 'advertiser'::text])),
+  first_name text NOT NULL,
+  last_name text NOT NULL,
+  status USER-DEFINED NOT NULL,
   CONSTRAINT User_pkey PRIMARY KEY (user_id)
 );
 CREATE TABLE public.Work (
   work_id bigint NOT NULL DEFAULT nextval('"Work_work_id_seq"'::regclass),
   title character varying NOT NULL,
   iswc character varying UNIQUE,
+  language text,
+  decals_release numeric,
   CONSTRAINT Work_pkey PRIMARY KEY (work_id)
 );
 CREATE TABLE public.WorkComposer (
