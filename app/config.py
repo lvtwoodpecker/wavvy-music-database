@@ -17,15 +17,19 @@ class Settings:
     STRIPE_API_KEY: str = os.getenv("STRIPE_API_KEY", "")
     STRIPE_WEBHOOK_SECRET: str = os.getenv("STRIPE_WEBHOOK_SECRET", "")
     
-    # SUPABASE settings
+    # SUPABASE (HTTP / REST)
     SUPABASE_URL: str = os.getenv("SUPABASE_URL", "") # Supabase project URL
     SUPABASE_SERVICE_KEY: str = os.getenv("SUPABASE_SERVICE_KEY", "") # Public anon key
     
     # SPOTIFY
-    SPOTIFY_CLIENT_ID_P: str = os.getenv("SPOTIFY_CLIENT_ID_P", "") # paola's client id
-    SPOTIFY_CLIENT_SECRET_P: str = os.getenv("SPOTIFY_CLIENT_SECRET_P", "") # paola's client secret
-    SPOTIFY_CLIENT_ID_C: str = os.getenv("SPOTIFY_CLIENT_ID_C", "") # Cedric's client id
-    SPOTIFY_CLIENT_SECRET_C: str = os.getenv("SPOTIFY_CLIENT_SECRET_C", "") # Cedric's client secret
-    
+    SPOTIFY_CLIENT_ID_P: str = os.getenv("SPOTIFY_CLIENT_ID_P", "")
+    SPOTIFY_CLIENT_SECRET_P: str = os.getenv("SPOTIFY_CLIENT_SECRET_P", "")
+    SPOTIFY_CLIENT_ID_C: str = os.getenv("SPOTIFY_CLIENT_ID_C", "")
+    SPOTIFY_CLIENT_SECRET_C: str = os.getenv("SPOTIFY_CLIENT_SECRET_C", "")
     SPOTIFY_REDIRECT_URI: str = os.getenv("SPOTIFY_REDIRECT_URI", "http://localhost:8888/callback")
     
+    # DATABASE (for SQLAlchemy)
+    DATABASE_URL: str = os.getenv(
+        "DATABASE_URL",
+        "postgresql://postgres:postgres@localhost:5432/wavvy_db"
+    )

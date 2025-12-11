@@ -1,6 +1,6 @@
 
 from multiprocessing.connection import Client
-from app.db.tables import User
+from app.models.User import User
 from app.db.tables.Listener import Listener
 from app.db.tables.Advertiser import Advertiser
 
