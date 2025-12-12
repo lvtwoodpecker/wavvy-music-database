@@ -4,6 +4,11 @@ from app.config import Settings
 
 settings = Settings()
 class SupabaseClient:
+    """
+    Supabase client initialization.
+    Provides a method to initialize and return a Supabase client instance.
+    """
+    
     @staticmethod
     def init_supabase() -> Client | None:
         supabase_url = settings.SUPABASE_URL
