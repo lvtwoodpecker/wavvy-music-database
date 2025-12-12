@@ -9,3 +9,6 @@ dotenv
 numpy
 scikit-learn
 pytest
+PyJWT
+bcrypt
+Flask-CORS

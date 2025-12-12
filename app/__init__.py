@@ -1,10 +1,14 @@
 from flask import Flask, jsonify
+from flask_cors import CORS
 from .config import settings
 
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = settings.SECRET_KEY
     app.config['ENV'] = settings.ENV
+    
+    # Enable CORS for frontend communication
+    CORS(app, resources={r"/api/*": {"origins": settings.FRONTEND_URL}})
 
     # register our blueprints
     # these are classes that group routes together
