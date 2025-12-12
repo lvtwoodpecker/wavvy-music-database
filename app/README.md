@@ -24,8 +24,6 @@
 
 - Advertiser, Campaign
 
-`schemas` --> what your API returns
-
 `services/` --> Business logic (queries, inserts, domain logic, analytics, etc)
 
 `api/` --> our site possible GET, POST routes 
