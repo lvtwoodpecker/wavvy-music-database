@@ -8,8 +8,6 @@ class WavvyAPIWrapper(WavvyAPI):
         
     def create_dev_app(self) -> Flask:
         app = WavvyAPI(__name__)
-        app.init_config()
-        app.init_supabase()
         
         @app.get('/')
         def index():

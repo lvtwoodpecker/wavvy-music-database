@@ -11,6 +11,7 @@ class Settings:
     
     # FRONTEND settings
     BACKEND_URL: str = os.getenv("BACKEND_URL", "http://localhost:3000")
+    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:5000")
     
     # PAYMENTS / STRIPE settings
     PAYMENTS_PROVIDER: str = os.getenv("PAYMENTS_PROVIDER", "stripe")
