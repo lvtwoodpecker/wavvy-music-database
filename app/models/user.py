@@ -3,11 +3,35 @@ from sqlalchemy.orm import relationship
 from app.db.sqlalchemy_engine import Base
 import enum
 
+# It inherits from the SQLAlchemy Base class.
+
 class UserRole(enum.Enum):
     listener = "listener"
     advertiser = "advertiser"
 
 class User(Base):
+    """
+    Model for the User table.
+    Represents a user in the system.
+    
+    Attributes:
+    - user_id: Primary key for the User.
+    - email: Unique email address of the user.
+    - username: Unique username of the user.
+    - first_name: First name of the user.
+    - last_name: Last name of the user.
+    - password_hash: Hashed password for authentication.
+    - country: Country of the user.
+    - role: Role of the user (listener or advertiser).
+    - status: Account status (e.g., active, inactive).
+    
+    Relationships:
+    - listener_profile: One-to-one relationship to Listener profile.
+    - advertiser_profile: One-to-one relationship to Advertiser profile.
+    - stripe_account: One-to-one relationship to StripeAccount.
+    - playlists: One-to-many relationship to Playlists owned by the user.
+    
+    """
     __tablename__ = "User"
 
     user_id = Column(Integer, primary_key=True, autoincrement=True)

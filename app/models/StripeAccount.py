@@ -2,7 +2,25 @@ from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime, f
 from sqlalchemy.orm import relationship
 from app.db.sqlalchemy_engine import Base
 
+# It inherits from the SQLAlchemy Base class.
+
 class StripeAccount(Base):
+    """  
+    Model for the StripeAccount table.
+    Represents a Stripe account linked to a user.
+    
+    Attributes:
+    - id: Primary key for the StripeAccount.
+    - stripe_id: Auto-generated Stripe account ID.
+    - user_id: Foreign key linking to the User table.
+    - stripe_customer_id: Stripe Customer ID.
+    - is_default: Boolean indicating if this is the default account.
+    - created_at: Timestamp of account creation.
+    
+    Relationships:
+    - user: One-to-one relationship back to the User model.
+    
+    """
     __tablename__ = "StripeAccount" 
 
     id = Column(Integer, primary_key=True, autoincrement=True)
