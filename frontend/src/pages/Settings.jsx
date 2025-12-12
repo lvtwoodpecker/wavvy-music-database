@@ -62,7 +62,7 @@ function Settings() {
   };
 
   const handleBackToHome = () => {
-    navigate('/');
+    navigate('/app');
   };
 
   return (
