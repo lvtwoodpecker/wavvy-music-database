@@ -27,3 +27,35 @@
   font-size: 0.95rem;
   opacity: 0.9;
 }
+
+.user-info {
+  background: #1f2937;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.user-info h2 {
+  margin: 0 0 0.5rem 0;
+  color: #f9fafb;
+}
+
+.user-email {
+  color: #9ca3af;
+  margin: 0 0 1rem 0;
+}
+
+.logout-button {
+  padding: 0.5rem 1.5rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.logout-button:hover {
+  background: #dc2626;
+}

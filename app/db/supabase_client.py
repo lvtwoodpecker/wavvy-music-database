@@ -1,10 +1,22 @@
-from supabase import create_client, Client
-from app.config import settings
+from supabase import Client, create_client
+import os
+from app.config import Settings
 
-supabase: Client | None = None
+settings = Settings()
+class SupabaseClient:
+    """
+    Supabase client initialization.
+    Provides a method to initialize and return a Supabase client instance.
+    """
+    
+    @staticmethod
+    def init_supabase() -> Client | None:
+        supabase_url = settings.SUPABASE_URL
+        supabase_key = settings.SUPABASE_SERVICE_KEY
 
-if settings.SUPABASE_URL and settings.SUPABASE_SERVICE_KEY:
-    # Initialize Supabase client
-    supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
-else:
-    print("[Supabase] Missing SUPABASE_URL or SUPABASE_SERVICE_KEY in env")
+        if supabase_url and supabase_key:
+            supabase_client = create_client(supabase_url, supabase_key)
+            return supabase_client
+
+        print("[Supabase] Missing SUPABASE_URL or SUPABASE_SERVICE_KEY in env")
+        return None

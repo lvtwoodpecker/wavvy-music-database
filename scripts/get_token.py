@@ -7,22 +7,25 @@ import requests
 import base64
 import webbrowser
 from urllib.parse import urlparse, parse_qs, quote
+from app import WavvyAPIWrapper
+
 
 # Add parent directory to path to import app modules
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from app.config import settings
+APP = WavvyAPIWrapper(__name__).create_dev_app()
+settings = APP.settings
 
 # Get credentials from config or env
-CLIENT_ID = os.environ.get("SPOTIFY_CLIENT_ID") or settings.SPOTIFY_CLIENT_ID_C
-CLIENT_SECRET = os.environ.get("SPOTIFY_CLIENT_SECRET") or settings.SPOTIFY_CLIENT_SECRET_C
+CLIENT_ID = os.environ.get("SPOTIFY_CLIENT_ID") or settings.SPOTIFY_CLIENT_ID_C or settings.SPOTIFY_CLIENT_ID_P
+CLIENT_SECRET = os.environ.get("SPOTIFY_CLIENT_SECRET") or settings.SPOTIFY_CLIENT_SECRET_C or settings.SPOTIFY_CLIENT_SECRET_P
 
 if not CLIENT_ID:
     CLIENT_ID = input("Enter your Spotify Client ID: ").strip()
 if not CLIENT_SECRET:
     CLIENT_SECRET = input("Enter your Spotify Client Secret: ").strip()
 
-REDIRECT_URI = settings.SPOTIFY_REDIRECT_URI or "https://httpbin.org/get"
+REDIRECT_URI =  settings.BACKEND_URL
 SCOPE = "playlist-read-private playlist-read-collaborative user-read-recently-played"
 
 print("Spotify OAuth Token Getter")

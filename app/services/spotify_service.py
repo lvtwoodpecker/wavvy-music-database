@@ -8,12 +8,6 @@ import requests
 from datetime import datetime, timezone
 from typing import Dict, Optional
 from bs4 import BeautifulSoup
-from app.config import settings
-from app.db.supabase_client import supabase
-
-if not supabase:
-    raise Exception("Supabase client not initialized")
-
 
 def get_spotify_token(client_id=None, client_secret=None):
     """
