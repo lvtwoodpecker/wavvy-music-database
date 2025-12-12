@@ -4,6 +4,19 @@ from app.services.stripe.stripe_service import StripeService
 
 class APIServices:
     
+    """ 
+    Aggregates all API services for easy access.
+    Keeps references to individual services like UserService and StripeService.
+    This class is initialized with the main application instance.
+    
+    Attributes:
+        user_service (UserService): Service for user-related operations.
+        stripe_service (StripeService): Service for Stripe-related operations.
+    
+    Methods:
+        create_services(): Initializes all services.
+    """
+    
     def __init__(self, app):
         self._stripe_service = StripeService(app)
         self._user_service = UserService(app, stripe_service=self._stripe_service)
