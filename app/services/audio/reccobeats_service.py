@@ -5,7 +5,7 @@ ReccoBeats is a free API that provides audio features for tracks using Spotify t
 import requests
 import time
 from typing import Optional, Dict
-from app.services.spotify_service import get_spotify_token, fetch_spotify_api
+from app.services.audio.spotify_service import get_spotify_token, fetch_spotify_api
 
 
 class ReccoBeatsService:

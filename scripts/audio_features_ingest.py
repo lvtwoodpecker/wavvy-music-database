@@ -6,16 +6,14 @@ Uses the ReccoBeats and AudioFeatures services.
 import sys
 import os
 import time
+from app import WavvyAPIWrapper
+from app.api import WavvyAPIBlueprints
+from app.services.register_services import APIServices
+from app.services.audio.audio_features_service import fetch_and_save_audio_features
 
-# Add parent directory to path to import app modules
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-from app.db.supabase_client import supabase
-from app.services.track_info_and_relationship_service import fetch_and_save_audio_features
-
-if not supabase:
-    raise Exception("Supabase client not initialized")
-
+APP = WavvyAPIWrapper(__name__).create_dev_app()
+APP._services = APIServices(APP)
+WavvyAPIBlueprints.register_blueprints(APP)
 
 def ingest_audio_features(limit=None, track_id=None):
     """
@@ -29,7 +27,7 @@ def ingest_audio_features(limit=None, track_id=None):
         print("Starting audio features ingestion from ReccoBeats API...")
         
         # Query tracks that don't have audio features yet
-        query = supabase.from_("Track").select("track_id, title, duration_ms")
+        query = APP.supabase.from_("Track").select("track_id, title, duration_ms")
         
         if track_id:
             query = query.eq("track_id", track_id)
@@ -44,7 +42,7 @@ def ingest_audio_features(limit=None, track_id=None):
         tracks_to_process = []
         for track in tracks_response.data:
             # Check if audio features exist
-            af_response = supabase.from_("AudioFeatures").select("track_id").eq("track_id", track['track_id']).limit(1).execute()
+            af_response = APP.supabase.from_("AudioFeatures").select("track_id").eq("track_id", track['track_id']).limit(1).execute()
             if not af_response.data:
                 tracks_to_process.append(track)
         
@@ -66,14 +64,14 @@ def ingest_audio_features(limit=None, track_id=None):
             print(f"\n[{idx}/{len(tracks)}] Processing: {track['title']}")
             
             # Get artist name for better matching
-            trackartist_response = supabase.from_("TrackArtist").select(
+            trackartist_response = APP.supabase.from_("TrackArtist").select(
                 "artist_id"
             ).eq("track_id", track['track_id']).limit(1).execute()
             
             artist_name = None
             if trackartist_response.data:
                 artist_id = trackartist_response.data[0]['artist_id']
-                artist_response = supabase.from_("Artist").select("name").eq("artist_id", artist_id).limit(1).execute()
+                artist_response = APP.supabase.from_("Artist").select("name").eq("artist_id", artist_id).limit(1).execute()
                 if artist_response.data:
                     artist_name = artist_response.data[0].get('name')
             

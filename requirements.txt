@@ -6,6 +6,8 @@ musicbrainzngs
 Flask
 stripe
 dotenv
+sqlalchemy
+psycopg2
 numpy
 scikit-learn
 pytest
