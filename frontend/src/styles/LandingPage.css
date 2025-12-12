@@ -16,6 +16,7 @@
 
 .header-content {
   max-width: 1200px;
+  max-height: 100px;
   margin: 0 auto;
   padding: 20px 40px;
   display: flex;
@@ -26,6 +27,7 @@
 .logo {
   font-size: 28px;
   font-weight: 700;
+  max-height: 50px;
   color: #667eea;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   background-clip: text;
@@ -268,6 +270,7 @@
     padding: 15px 20px;
     flex-direction: column;
     gap: 15px;
+    overflow: hidden;
   }
 
   .hero-section {
