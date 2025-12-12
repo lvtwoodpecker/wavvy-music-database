@@ -9,7 +9,6 @@ from app.models.User import User
 from app.models.Listener import Listener
 from app.models.Advertiser import Advertiser
 from app.models.StripeAccount import StripeAccount
-import app.schemas.User as user_schemas
 
 SessionFactory = Callable[[], Session]
 

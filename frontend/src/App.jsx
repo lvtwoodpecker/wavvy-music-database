@@ -6,6 +6,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
+import Settings from "./pages/Settings.jsx";
 import PaymentSuccess from "./pages/PaymentSuccess.jsx";
 import PaymentCancelled from "./pages/PaymentCancelled.jsx";
 import "./styles/App.css";
@@ -26,6 +27,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Home />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
                 </ProtectedRoute>
               }
             />

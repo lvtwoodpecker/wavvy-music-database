@@ -5,8 +5,6 @@ from app.models.User import User          # ORM models, not table-constants
 from app.models.Listener import Listener
 from app.models.Advertiser import Advertiser
 
-import app.schemas.User as user_schemas
-
 # Type alias for "give me a Session when I call you"
 SessionFactory = Callable[[], Session]
 
