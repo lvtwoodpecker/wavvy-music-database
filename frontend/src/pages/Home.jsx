@@ -14,15 +14,24 @@ function Home() {
     navigate('/');
   };
 
+  const handleSettings = () => {
+    navigate('/settings');
+  };
+
   return (
     <main className="home-main">
       <div className="home-card">
         <div className="user-info">
           <h2>Welcome, {user?.first_name || user?.username}!</h2>
           <p className="user-email">{user?.email}</p>
-          <button onClick={handleLogout} className="logout-button">
-            Logout
-          </button>
+          <div className="user-actions">
+            <button onClick={handleSettings} className="settings-button">
+              Settings
+            </button>
+            <button onClick={handleLogout} className="logout-button">
+              Logout
+            </button>
+          </div>
         </div>
         
         <h1>Wavvy Premium (Test Mode)</h1>

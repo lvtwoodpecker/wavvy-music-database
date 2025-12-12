@@ -1,6 +1,6 @@
 /* src/styles/Auth.css */
 .auth-container {
-  min-height: 100vh;
+  min-height: 90%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -118,7 +118,7 @@
   text-decoration: underline;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 300px) {
   .auth-card {
     padding: 30px 20px;
   }

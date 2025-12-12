@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 from supabase import Client
 from app.config import Settings
 from app.db.supabase_client import SupabaseClient
@@ -37,6 +38,7 @@ class WavvyAPI(Flask):
         self._services: APIServices | None = None
 
         self.init_config()
+        self.init_cors()
         self.init_supabase()
         self.init_database()
         self.init_services()
@@ -86,6 +88,17 @@ class WavvyAPI(Flask):
     def init_config(self) -> None:
         self.config["SECRET_KEY"] = self._settings.SECRET_KEY
         self.config["ENV"] = self._settings.ENV
+
+    # CORS
+    def init_cors(self) -> None:
+        """Initialize CORS with frontend URL."""
+        CORS(self, resources={
+            r"/api/*": {
+                "origins": [self._settings.FRONTEND_URL],
+                "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                "allow_headers": ["Content-Type", "Authorization"]
+            }
+        })
 
     # blueprints
     def register_blueprints(self) -> None:
