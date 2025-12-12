@@ -24,6 +24,7 @@
 
 - Advertiser, Campaign
 
+`schemas` --> what your API returns
 
 `services/` --> Business logic (queries, inserts, domain logic, analytics, etc)
 

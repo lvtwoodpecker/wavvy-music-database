@@ -9,6 +9,7 @@ from app.models.User import User
 from app.models.Listener import Listener
 from app.models.Advertiser import Advertiser
 from app.models.StripeAccount import StripeAccount
+import app.schemas.User as user_schemas
 
 SessionFactory = Callable[[], Session]
 
@@ -110,49 +111,48 @@ class UserCreationService:
             db.flush()  # assign user.user_id without committing
 
             # Step 2: Create Stripe customer via Stripe API
-            try:
-                print("Creating Stripe customer...")
-                stripe_customer_id = (
-                    self
-                    ._stripe_service
-                    .stripe_account_service
-                    .create_stripe_customer(
-                        email=email,
-                        first_name=first_name,
-                        last_name=last_name,
-                    )
-                )
-            except Exception as e:
-                print(f"Error creating Stripe customer: {e}")
-                db.rollback()
-                raise RuntimeError(
-                    "Failed to create Stripe customer, user creation rolled back"
-                )
+            # try:
+            #     print("Creating Stripe customer...")
+            #     stripe_customer_id = (
+            #         self
+            #         ._stripe_service
+            #         .stripe_account_service
+            #         .create_local_stripe_account_record(
+            #             user_id=user.user_id,
+            #             stripe_customer_id="to_be_filled",  # placeholder
+            #             is_default=True,
+            #         )
+            #     )
+            # except Exception as e:
+            #     print(f"Error creating Stripe customer: {e}")
+            #     db.rollback()
+            #     raise RuntimeError(
+            #         "Failed to create Stripe customer, user creation rolled back"
+            #     )
 
-            # Step 3: Create local Stripe account record (ORM)
-            try:
-                print("Creating local Stripe account record...")
-                stripe_account = StripeAccount(
-                    user_id=user.user_id,
-                    stripe_customer_id=stripe_customer_id,
-                    is_default=True,
-                )
-                db.add(stripe_account)
-                db.flush()
-            except Exception as e:
-                print(f"Error creating local Stripe account record: {e}")
-                db.rollback()
-                raise RuntimeError(
-                    "Failed to create local Stripe account record, user creation rolled back"
-                )
+            # # Step 3: Create local Stripe account record (ORM)
+            # try:
+            #     print("Creating local Stripe account record...")
+            #     stripe_account = StripeAccount(
+            #         user_id=user.user_id,
+            #         stripe_customer_id=stripe_customer_id,
+            #         is_default=True,
+            #     )
+            #     db.add(stripe_account)
+            #     db.flush()
+            # except Exception as e:
+            #     print(f"Error creating local Stripe account record: {e}")
+            #     db.rollback()
+            #     raise RuntimeError(
+            #         "Failed to create local Stripe account record, user creation rolled back"
+            #     )
 
             # Step 4: Commit everything
             db.commit()
             db.refresh(user)
-            db.refresh(stripe_account)
+            # db.refresh(stripe_account)
 
             user_dict = self._serialize_user(user)
-            user_dict["stripe_account"] = self._serialize_stripe_account(stripe_account)
             return user_dict
 
         except Exception:
@@ -263,6 +263,8 @@ class UserCreationService:
                 "ad_free": listener.ad_free,
             }
 
+            print("Listener created successfully.")
+            print(f"User data: {user_dict}")
             return {
                 **user_dict,
                 "listener": listener_data,

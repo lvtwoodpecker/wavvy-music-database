@@ -1,8 +1,8 @@
 from flask import Flask, Blueprint, request, jsonify
-from app.api.routes import Routes
+import app.api.base_routes as base_routes
 from app.services.stripe.stripe_service import StripeService
 
-class StripeRoutes(Routes):
+class StripeRoutes(base_routes.BaseRoutes):
 
     def create_blueprint(self, app) -> Blueprint:
         bp = Blueprint('stripe', __name__)

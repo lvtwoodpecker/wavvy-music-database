@@ -7,9 +7,10 @@ import os
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from flask import request, jsonify
-from app.config import settings
+from app.config import Settings
 from typing import Optional, Dict, Any
 
+settings = Settings()
 # JWT Configuration
 JWT_SECRET = settings.SECRET_KEY
 JWT_ALGORITHM = "HS256"

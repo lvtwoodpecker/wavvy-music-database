@@ -5,9 +5,10 @@ from app.models.User import User          # ORM models, not table-constants
 from app.models.Listener import Listener
 from app.models.Advertiser import Advertiser
 
+import app.schemas.User as user_schemas
+
 # Type alias for "give me a Session when I call you"
 SessionFactory = Callable[[], Session]
-
 
 class FindUserService:
     """Service for retrieving user information using SQLAlchemy ORM."""
@@ -24,7 +25,17 @@ class FindUserService:
         """Get a user by their email address."""
         db = self._get_session()
         try:
-            return db.query(User).filter(User.email == email).one_or_none()
+            print(f"[User Service] Fetching user by email: {email}")
+            user = db.query(User).filter(User.email == email)
+            print(f"[User Service] Query constructed:")
+            print("Executing query...")
+            
+            # create a User object to see the result
+            user_object = user.first()
+            
+            print(f"[User Service] Query executed. Result: {user_object}")
+            
+            return user_object
         except Exception as e:
             print(f"[User Service] Error fetching user by email {email}: {e}")
             raise RuntimeError("Failed to fetch user by email")

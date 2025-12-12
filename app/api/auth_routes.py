@@ -9,6 +9,7 @@ from app.utils.auth import (
 )
 from app.services.user.user_service import UserService
 import app.api.base_routes as base_routes
+
 class AuthRoutes(base_routes.BaseRoutes):
     
     def create_blueprint(self, app) -> Blueprint:
@@ -76,7 +77,7 @@ class AuthRoutes(base_routes.BaseRoutes):
                 password_hashed = hash_password(password)
                 
                 # Create listener user (default user type)
-                user = user_service.user_creation_service.create_listener(
+                user_response = user_service.user_creation_service.create_listener(
                     email=email,
                     username=username,
                     first_name=first_name,
@@ -86,11 +87,11 @@ class AuthRoutes(base_routes.BaseRoutes):
                 )
                 
                 # Generate JWT token
-                token = generate_token(user["user_id"], user["email"])
+                token = generate_token(user_response["user_id"], email)
+                print("Generated token:", token)
                 
                 # Remove password_hash from response
-                user_response = {k: v for k, v in user.items() if k != "password_hash"}
-                
+                user_response.pop("password_hash", None)
                 return jsonify({
                     "token": token,
                     "user": user_response
@@ -125,14 +126,15 @@ class AuthRoutes(base_routes.BaseRoutes):
                     return jsonify({"error": "Invalid credentials"}), 401
                 
                 # Verify password
-                if not verify_password(password, user["password_hash"]):
+                if not verify_password(password, user.password_hash):
                     return jsonify({"error": "Invalid credentials"}), 401
                 
                 # Generate JWT token
-                token = generate_token(user["user_id"], user["email"])
+                token = generate_token(user.user_id, user.email)
                 
                 # Remove password_hash from response
-                user_response = {k: v for k, v in user.items() if k != "password_hash"}
+                print("User logged in successfully:", user.role)
+                user_response = user.to_dict()
                 
                 return jsonify({
                     "token": token,
@@ -173,8 +175,13 @@ class AuthRoutes(base_routes.BaseRoutes):
                 )
                 
                 # Remove password_hash from response
-                user_response = {k: v for k, v in user.items() if k != "password_hash"}
-                
+                user_response =  {
+                    "email": user["email"],
+                    "username": user["username"],
+                    "role": user["role"],
+                    "company_name": company_name
+                }
+            
                 return jsonify({
                     "user": user_response
                 }), 200
@@ -205,7 +212,7 @@ class AuthRoutes(base_routes.BaseRoutes):
                     return jsonify({"error": "User not found"}), 404
                 
                 # Remove password_hash from response
-                user_response = {k: v for k, v in user.items() if k != "password_hash"}
+                user_response = user.to_dict()
                 
                 return jsonify({"user": user_response}), 200
                 
