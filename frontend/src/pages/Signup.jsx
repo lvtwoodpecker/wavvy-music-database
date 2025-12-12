@@ -58,7 +58,7 @@ function Signup() {
       };
       const data = await authService.signup(signupData);
       login(data.token, data.user);
-      navigate('/');
+      navigate('/app');
     } catch (err) {
       setError(err.message);
     } finally {

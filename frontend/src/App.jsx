@@ -3,6 +3,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import LandingPage from "./pages/LandingPage.jsx";
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
@@ -18,12 +19,13 @@ function App() {
         <div className="app-root">
           <Routes>
             {/* Public routes */}
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             
             {/* Protected routes */}
             <Route
-              path="/"
+              path="/app"
               element={
                 <ProtectedRoute>
                   <Home />
@@ -55,7 +57,7 @@ function App() {
               }
             />
             
-            {/* Catch all - redirect to home */}
+            {/* Catch all - redirect to landing page */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
