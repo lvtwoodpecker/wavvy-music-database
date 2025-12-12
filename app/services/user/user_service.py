@@ -14,7 +14,11 @@ SessionFactory = Callable[[], Session]
 
 
 class UserService(service.Service):
-    """Service for managing User-related operations."""
+    """Service for managing User-related operations.
+    
+    This service aggregates sub-services for user creation, status management, and user lookups.
+    It depends on StripeService for handling Stripe-related operations during user creation.
+    """
 
     def __init__(self, app, stripe_service: StripeService):
         self._stripe_service = stripe_service
