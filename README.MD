@@ -74,7 +74,8 @@ npm run dev
 python3 -m app.main.py 
 ```
 
-
-# Run
+# Packages needed 
+```bash
 brew install libpq
 brew link --force libpq
+```
