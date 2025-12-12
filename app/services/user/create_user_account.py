@@ -31,6 +31,7 @@ class UserCreationService:
     # ---------- Internal helpers ----------
 
     def _get_session(self) -> Session:
+        """Get a new database session."""
         return self._db_session_factory()
 
     @staticmethod
@@ -49,6 +50,7 @@ class UserCreationService:
 
     @staticmethod
     def _serialize_stripe_account(account: StripeAccount) -> Dict[str, Any]:
+        """Turn a StripeAccount ORM object into a dict suitable for API responses."""
         return {
             "stripe_account_id": getattr(account, "id", None),
             "user_id": account.user_id,
@@ -74,6 +76,13 @@ class UserCreationService:
         in a single transaction.
 
         Returns a dict representing the user + embedded stripe_account dict.
+        
+        STEPS: 
+        0. Check if user with same email exists
+        1. Create base User row (ORM)
+        2. Create Stripe customer via Stripe API
+        3. Create local StripeAccount row (ORM)
+        4. Commit transaction
         """
 
         if role not in ("listener", "advertiser"):

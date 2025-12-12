@@ -21,6 +21,7 @@ class FindUserService:
     # ---------- User lookups ----------
 
     def get_user_by_email(self, email: str) -> Optional[User]:
+        """Get a user by their email address."""
         db = self._get_session()
         try:
             return db.query(User).filter(User.email == email).one_or_none()
@@ -31,6 +32,7 @@ class FindUserService:
             db.close()
 
     def get_user_by_id(self, user_id: int) -> Optional[User]:
+        """Get a user by their user ID."""
         db = self._get_session()
         try:
             return db.query(User).filter(User.user_id == user_id).one_or_none()
@@ -41,6 +43,7 @@ class FindUserService:
             db.close()
 
     def get_user_by_username(self, username: str) -> Optional[User]:
+        """Get a user by their username."""
         db = self._get_session()
         try:
             return db.query(User).filter(User.username == username).one_or_none()
@@ -76,6 +79,7 @@ class FindUserService:
     # ---------- Listener / Advertiser lookups ----------
 
     def get_listener_by_user_id(self, user_id: int) -> Optional[Listener]:
+        """Get a listener profile by the associated user ID."""
         db = self._get_session()
         try:
             return (
@@ -90,6 +94,7 @@ class FindUserService:
             db.close()
 
     def get_advertiser_by_user_id(self, user_id: int) -> Optional[Advertiser]:
+        """Get an advertiser profile by the associated user ID."""
         db = self._get_session()
         try:
             return (
