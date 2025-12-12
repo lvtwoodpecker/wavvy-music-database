@@ -47,9 +47,15 @@ function Signup() {
     setLoading(true);
 
     try {
-      // Remove confirmPassword before sending to API
-      // eslint-disable-next-line no-unused-vars
-      const { confirmPassword, ...signupData } = formData;
+      // Extract only needed fields, excluding confirmPassword
+      const signupData = {
+        email: formData.email,
+        password: formData.password,
+        username: formData.username,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        country: formData.country,
+      };
       const data = await authService.signup(signupData);
       login(data.token, data.user);
       navigate('/');

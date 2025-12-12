@@ -6,19 +6,35 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem('auth_user');
-    return storedUser ? JSON.parse(storedUser) : null;
+    try {
+      const storedUser = localStorage.getItem('auth_user');
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch (error) {
+      console.error('Failed to parse stored user data:', error);
+      localStorage.removeItem('auth_user');
+      return null;
+    }
   });
   
   const [token, setToken] = useState(() => {
-    return localStorage.getItem('auth_token') || null;
+    try {
+      return localStorage.getItem('auth_token') || null;
+    } catch (error) {
+      console.error('Failed to retrieve auth token:', error);
+      return null;
+    }
   });
   
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return !!(localStorage.getItem('auth_token') && localStorage.getItem('auth_user'));
+    try {
+      const hasToken = !!localStorage.getItem('auth_token');
+      const hasUser = !!localStorage.getItem('auth_user');
+      return hasToken && hasUser;
+    } catch (error) {
+      console.error('Failed to check authentication state:', error);
+      return false;
+    }
   });
-
-  // No useEffect needed - we initialize state directly from localStorage
 
   const login = (authToken, userData) => {
     setToken(authToken);

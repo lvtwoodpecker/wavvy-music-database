@@ -3,6 +3,7 @@
 
 import jwt
 import bcrypt
+import os
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from flask import request, jsonify
@@ -12,7 +13,8 @@ from typing import Optional, Dict, Any
 # JWT Configuration
 JWT_SECRET = settings.SECRET_KEY
 JWT_ALGORITHM = "HS256"
-JWT_EXPIRATION_HOURS = 24 * 7  # 7 days
+# Token expiration in hours - configurable via environment variable
+JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "168"))  # Default 7 days
 
 
 def hash_password(password: str) -> str:
