@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey
+from sqlalchemy import Boolean, Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from app.db.sqlalchemy_engine import Base
 
@@ -20,7 +20,8 @@ class Listener(Base):
 
     listener_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("User.user_id"), unique=True, nullable=False)
-
+    ad_free = Column(Boolean, default=False)  # false by default
+    
     # Relationship back to User
     user = relationship("User", back_populates="listener_profile")
 

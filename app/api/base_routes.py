@@ -2,7 +2,7 @@ from typing import cast
 from flask import Flask, Blueprint, request, jsonify
 from abc import ABC, abstractmethod
     
-class Routes(ABC):
+class BaseRoutes(ABC):
     """
     Abstract base class for defining API routes.
     Subclasses must implement the create_blueprint method to define their routes.
@@ -17,7 +17,6 @@ class Routes(ABC):
     
     def __init__(self, app: Flask = None):
         self._settings = app.settings 
-        self._db = app.supabase
         self._bp = None
         
     @property

@@ -1,11 +1,13 @@
 """Content-based recommender API routes."""
 from flask import Blueprint, request, jsonify
 from app.services.content_based_recommender_service import ContentBasedRecommenderService
+from app.utils.auth import login_required
 
 recommender_bp = Blueprint("recommender", __name__)
 service = ContentBasedRecommenderService()
 
 @recommender_bp.route('/playlist/<int:playlist_id>', methods=['GET'])
+@login_required
 def recommend_for_playlist(playlist_id):
     limit = int(request.args.get('limit', 10))
     
@@ -20,6 +22,7 @@ def recommend_for_playlist(playlist_id):
         return jsonify({"error": str(e)}), 500
 
 @recommender_bp.route('/user/<listener_id>', methods=['GET'])
+@login_required
 def recommend_for_user(listener_id):
     limit = int(request.args.get('limit', 10))
     

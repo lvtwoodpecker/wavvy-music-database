@@ -70,7 +70,20 @@ class User(Base):
     )
         
     # one-to-many relationship from User --> Playlist
-    playlists = relationship("Playlist", back_populates="owner", cascade="all, delete-orphan")
+    # playlists = relationship("Playlist", back_populates="owner", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User(username='{self.username}', email='{self.email}', role='{self.role.value}')>"
+
+
+    def to_dict(self):        
+        return {
+            "user_id": self.user_id,
+            "email": self.email,
+            "username": self.username,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "country": self.country,
+            "role": self.role.value,
+            "status": self.status
+        }

@@ -24,7 +24,6 @@
 
 - Advertiser, Campaign
 
-
 `services/` --> Business logic (queries, inserts, domain logic, analytics, etc)
 
 `api/` --> our site possible GET, POST routes 
