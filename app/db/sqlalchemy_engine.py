@@ -2,6 +2,18 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from app.config import Settings
 
+""" 
+SQLAlchemy engine and session setup for the application.
+Provides:
+- engine: SQLAlchemy engine instance.
+- SessionLocal: Session factory for creating DB sessions.
+- Base: Declarative base class for ORM models.
+
+Why? 
+Centralizes DB connection setup and ORM base for consistent use across the app.
+Important for managing DB connections and sessions properly and avoiding leaks/SQL injection.
+"""
+
 settings = Settings()
 
 engine = create_engine(
