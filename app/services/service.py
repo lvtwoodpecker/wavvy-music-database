@@ -1,41 +1,57 @@
-from typing import cast
-from flask import Flask, Blueprint, request, jsonify
 from abc import ABC, abstractmethod
+from flask import Flask
 
 class Service(ABC):
     """
-    Abstract base class for defining services.
-    Subclasses must implement the create_service method to define their service logic.
-    
-    Attributes:
-        _service (any): The service instance.
-        
-    Properties:
-        settings (WavvyAPI): Access to the WavvyAPI settings from the current app.
-        service (any): The service instance.
+    Base class for application services.
+
+    Provides access to:
+      - app settings
+      - Supabase client (if available)
+      - SQLAlchemy session factory (db_session_factory)
     """
-    
-    def __init__(self, app: Flask = None):
-        self._settings = app.settings if app is not None else None
-        self._supabase = app.supabase if app is not None else None
-        if app is not None:
-            with app.app_context():
-                self._service = self.create_service()
-        else:
-            raise RuntimeError("Service must be initialized within an app context.")
-        
+
+    def __init__(self, app: Flask):
+        if app is None:
+            raise RuntimeError("Service must be initialized with an app instance.")
+
+        # Keep a reference to the app if needed
+        self._app = app
+
+        # Core shared dependencies
+        self._settings = app.settings            # Settings instance from WavvyAPI
+        self._supabase = getattr(app, "supabase", None)
+        self._db_session_factory = getattr(app, "db_session_factory", None)
+
+        # NOTE: we do NOT auto-call create_service() here anymore.
+        # Each subclass decides when/how to call create_service().
+
+    # -------- Properties --------
+
     @property
     def settings(self):
+        """Access application settings."""
         return self._settings
-    
+
     @property
-    def db(self):
+    def supabase(self):
+        """Access Supabase client, if present."""
         return self._supabase
-    
+
     @property
-    def service(self):
-        return self._service
-        
+    def db_session_factory(self):
+        """
+        Access the SQLAlchemy SessionLocal factory.
+        Services should use this to open DB sessions.
+        """
+        if self._db_session_factory is None:
+            raise RuntimeError("db_session_factory is not configured on this app.")
+        return self._db_session_factory
+
     @abstractmethod
     def create_service(self):
-        raise NotImplementedError("Subclasses must implement create_service method.")
+        """
+        Subclasses implement this to initialize any internal sub-services
+        or perform setup. They control when to call it (usually in __init__).
+        """
+        raise NotImplementedError("Subclasses must implement create_service().")

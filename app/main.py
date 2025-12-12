@@ -6,8 +6,8 @@ from app.services.register_services import APIServices
 from app.api import WavvyAPIBlueprints
 
 APP = WavvyAPIWrapper(__name__).create_dev_app()
-APP._services = APIServices(APP)
-WavvyAPIBlueprints.register_blueprints(APP)
+# APP._services = APIServices(APP)
+# WavvyAPIBlueprints.register_blueprints(APP)
 
 if __name__ == "__main__":
     APP.run(port=5000, debug=True)

@@ -1,4 +1,3 @@
-from multiprocessing.connection import Client
 from app.services.user.user_service import UserService
 from app.services.stripe.stripe_service import StripeService
 

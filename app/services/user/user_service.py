@@ -17,18 +17,14 @@ class UserService(service.Service):
     """Service for managing User-related operations."""
 
     def __init__(self, app, stripe_service: StripeService):
-        super().__init__(app)
-
-        # Shared dependencies
         self._stripe_service = stripe_service
-        self._db_session_factory: SessionFactory = app.db_session_factory
-        # If you ever need Supabase in sub-services:
-        # self._supabase = app.supabase
+        super().__init__(app)
+        self.create_service()
 
-        # Sub-services (lazy-init)
-        self._user_creation_service: Optional[UserCreationService] = None
-        self._find_user_service: Optional[FindUserService] = None
-        self._user_update_service: Optional[UserStatusService] = None
+    def create_service(self):
+        self._find_user_service = self._create_find_user_service()
+        self._user_status_service = self._create_user_status_service()
+        self._user_creation_service = self._create_user_service()
 
     # --- Properties ---
     @property
@@ -38,24 +34,24 @@ class UserService(service.Service):
     @property
     def find_user_service(self) -> FindUserService:
         if self._find_user_service is None:
-            self._find_user_service = self.create_find_user_service()
+            self._find_user_service = self._create_find_user_service()
         return self._find_user_service
 
     @property
     def user_creation_service(self) -> UserCreationService:
         if self._user_creation_service is None:
-            self._user_creation_service = self.create_user_service()
+            self._user_creation_service = self._create_user_service()
         return self._user_creation_service
 
     @property
     def user_status_service(self) -> UserStatusService:
-        if self._user_update_service is None:
-            self._user_update_service = self.create_user_status_service()
-        return self._user_update_service
+        if self._user_status_service is None:
+            self._user_status_service = self._create_user_status_service()
+        return self._user_status_service
 
     # --- Factory Methods for Sub-services ---
 
-    def create_user_service(self) -> UserCreationService:
+    def _create_user_service(self) -> UserCreationService:
         """
         Creates and returns a UserCreationService instance.
 
@@ -72,7 +68,7 @@ class UserService(service.Service):
             user_status_service=self.user_status_service,
         )
 
-    def create_user_status_service(self) -> UserStatusService:
+    def _create_user_status_service(self) -> UserStatusService:
         """
         Creates and returns a UserStatusService instance.
         Injects db_session_factory so it can update user rows using ORM.
@@ -81,7 +77,7 @@ class UserService(service.Service):
             db_session_factory=self._db_session_factory,
         )
 
-    def create_find_user_service(self) -> FindUserService:
+    def _create_find_user_service(self) -> FindUserService:
         """
         Creates and returns a FindUserService instance.
         Injects db_session_factory so it can query users with ORM.
@@ -89,12 +85,3 @@ class UserService(service.Service):
         return FindUserService(
             db_session_factory=self._db_session_factory,
         )
-
-    def create_service(self):
-        """
-        Kept for backwards compatibility if something calls it.
-        Eagerly instantiates all sub-services.
-        """
-        _ = self.find_user_service
-        _ = self.user_status_service
-        _ = self.user_creation_service
