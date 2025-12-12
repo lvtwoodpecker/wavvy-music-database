@@ -22,7 +22,7 @@ function Login() {
     try {
       const data = await authService.login(email, password);
       login(data.token, data.user);
-      navigate('/');
+      navigate('/app');
     } catch (err) {
       setError(err.message);
     } finally {
