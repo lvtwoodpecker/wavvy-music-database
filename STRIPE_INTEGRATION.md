@@ -103,3 +103,6 @@ FRONTEND_URL=http://localhost:5173
 - Subscription handling
 - Transaction history
 - Stripe Dashboard link for connected accounts
+
+
+<img width="698" height="784" alt="image" src="https://github.com/user-attachments/assets/7aed6d26-d80e-4093-9e88-50244d06869a" />
