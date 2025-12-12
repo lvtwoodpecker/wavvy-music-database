@@ -1,27 +1,24 @@
 // src/context/AuthContext.jsx
-import React, { createContext, useContext, useState, useEffect } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import React, { createContext, useContext, useState } from 'react';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  // Load token from localStorage on mount
-  useEffect(() => {
-    const storedToken = localStorage.getItem('auth_token');
+  const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem('auth_user');
-    
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-      setIsAuthenticated(true);
-    }
-    
-    setLoading(false);
-  }, []);
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
+  
+  const [token, setToken] = useState(() => {
+    return localStorage.getItem('auth_token') || null;
+  });
+  
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return !!(localStorage.getItem('auth_token') && localStorage.getItem('auth_user'));
+  });
+
+  // No useEffect needed - we initialize state directly from localStorage
 
   const login = (authToken, userData) => {
     setToken(authToken);
@@ -43,7 +40,7 @@ export function AuthProvider({ children }) {
     user,
     token,
     isAuthenticated,
-    loading,
+    loading: false,
     login,
     logout,
   };
