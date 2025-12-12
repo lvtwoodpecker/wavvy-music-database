@@ -8,6 +8,7 @@ import enum
 class UserRole(enum.Enum):
     listener = "listener"
     advertiser = "advertiser"
+    
 
 class User(Base):
     """
