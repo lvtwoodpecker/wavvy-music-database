@@ -15,7 +15,9 @@ from app.services.spotify_service import (
     fetch_spotify_api,
     ingest_track_from_spotify
 )
+from app.services.track_info_and_relationship_service import add_song_info
 from app.db.supabase_client import supabase
+from app.config import settings
 
 if not supabase:
     raise Exception("Supabase client not initialized")
@@ -28,11 +30,25 @@ def get_or_create_user(username="cedricster", email=None, country="US"):
     
     password_hash = hashlib.sha256(f"{username}_demo_password".encode()).hexdigest()
     
+    # Derive first_name and last_name from username (capitalize first letter)
+    # If username has multiple parts, use first as first_name, rest as last_name
+    name_parts = username.split('_')
+    if len(name_parts) > 1:
+        first_name = name_parts[0].capitalize()
+        last_name = '_'.join(name_parts[1:]).capitalize()
+    else:
+        first_name = username.capitalize()
+        last_name = "User"
+    
     user_data = {
         "username": username,
         "email": email,
         "password_hash": password_hash,
-        "country": country
+        "country": country,
+        "role": "listener",  # Required: must be 'listener' or 'advertiser'
+        "first_name": first_name,  # Required
+        "last_name": last_name,  # Required
+        "status": "active"  # Required: USER-DEFINED enum type
     }
     
     existing_user = supabase.from_("User").select("*").eq("username", username).limit(1).execute()
@@ -60,8 +76,7 @@ def get_or_create_listener(user_id):
     
     listener_data = {
         "user_id": user_id,
-        "ad_free": False,
-        "payment_amt": 0.00
+        "ad_free": False
     }
     
     listener_response = supabase.from_("Listener").insert(listener_data).execute()
@@ -73,10 +88,10 @@ def get_or_create_listener(user_id):
     return listener_response.data[0]
 
 
-def get_user_playlists(user_token, limit=50):
+def get_user_playlists(user_token, limit=50, retry_with_new_token=True):
     """Fetch user's playlists from Spotify API."""
     all_playlists = []
-    url = f"me/playlists?limit={min(limit, 50)}"
+    url = f"me/playlists?limit={min(limit, 120)}"
     
     while url and len(all_playlists) < limit:
         time.sleep(0.2)
@@ -85,18 +100,34 @@ def get_user_playlists(user_token, limit=50):
         else:
             endpoint = url
         
-        data = fetch_spotify_api(endpoint, user_token)
-        playlists = data.get('items', [])
-        all_playlists.extend(playlists)
-        url = data.get('next')
-        
-        if not url:
-            break
+        try:
+            data = fetch_spotify_api(endpoint, user_token)
+            playlists = data.get('items', [])
+            all_playlists.extend(playlists)
+            url = data.get('next')
+            
+            if not url:
+                break
+        except Exception as e:
+            error_msg = str(e)
+            if "401" in error_msg or "expired" in error_msg.lower() or "Unauthorized" in error_msg:
+                if retry_with_new_token:
+                    print(f"\nToken expired: {error_msg}")
+                    new_token = handle_token_expired()
+                    if new_token:
+                        user_token = new_token
+                        continue  # Retry with new token
+                    else:
+                        break  # User chose to exit
+                else:
+                    raise
+            else:
+                raise
     
-    return all_playlists[:limit]
+    return all_playlists[:limit], user_token  # Return updated token
 
 
-def get_playlist_tracks(user_token, playlist_id):
+def get_playlist_tracks(user_token, playlist_id, retry_with_new_token=True):
     """Fetch tracks from a specific playlist."""
     all_tracks = []
     url = f"playlists/{playlist_id}/tracks?limit=100"
@@ -108,27 +139,112 @@ def get_playlist_tracks(user_token, playlist_id):
         else:
             endpoint = url
         
-        data = fetch_spotify_api(endpoint, user_token)
-        items = data.get('items', [])
-        all_tracks.extend(items)
-        url = data.get('next')
-        
-        if not url:
-            break
+        try:
+            data = fetch_spotify_api(endpoint, user_token)
+            items = data.get('items', [])
+            all_tracks.extend(items)
+            url = data.get('next')
+            
+            if not url:
+                break
+        except Exception as e:
+            error_msg = str(e)
+            if "401" in error_msg or "expired" in error_msg.lower() or "Unauthorized" in error_msg:
+                if retry_with_new_token:
+                    print(f"\nToken expired: {error_msg}")
+                    new_token = handle_token_expired()
+                    if new_token:
+                        user_token = new_token
+                        continue  # Retry with new token
+                    else:
+                        break  # User chose to exit
+                else:
+                    raise
+            else:
+                raise
     
-    return all_tracks
+    return all_tracks, user_token  # Return updated token
 
 
-def get_recently_played_tracks(user_token, limit=50):
-    """Fetch user's recently played tracks from Spotify."""
+def handle_token_expired():
+    """Handle expired token by prompting user to get a new one."""
+    print("\n" + "="*60)
+    print("⚠️  TOKEN EXPIRED - New token required")
+    print("="*60)
+    print("\nYour Spotify access token has expired.")
+    print("\nOptions:")
+    print("1. Run the token getter script now")
+    print("2. Enter a new token manually")
+    print("3. Exit and get token later")
+    
+    choice = input("\nEnter choice (1-3): ").strip()
+    
+    if choice == "1":
+        print("\nOpening token getter...")
+        import subprocess
+        try:
+            # Get the script directory and construct absolute path
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            token_script_path = os.path.join(script_dir, "get_token.py")
+            project_root = os.path.dirname(script_dir)
+            
+            # Run from project root to ensure imports work
+            subprocess.run(["python", token_script_path], cwd=project_root, check=False)
+            print("\nAfter getting your token, run this script again with:")
+            print("  SPOTIFY_USER_TOKEN=your_new_token python scripts/spotify_playlist_ingest.py")
+        except Exception as e:
+            print(f"Could not run token getter: {e}")
+            print("Please run manually: python scripts/get_token.py")
+        return None
+    elif choice == "2":
+        new_token = input("Enter your new Spotify user access token: ").strip()
+        if new_token:
+            return new_token
+        return None
+    else:
+        print("Exiting. Get a new token and try again.")
+        return None
+
+
+def get_recently_played_tracks(user_token, limit=50, retry_with_new_token=True):
+    """Fetch user's recently played tracks from Spotify.
+    
+    Returns:
+        If retry_with_new_token is True: (tracks_list, token) tuple
+        If retry_with_new_token is False: tracks_list only
+    """
     endpoint = f"me/player/recently-played?limit={min(limit, 50)}"
     
     try:
         data = fetch_spotify_api(endpoint, user_token)
-        return data.get('items', [])
+        tracks = data.get('items', [])
+        if retry_with_new_token:
+            return tracks, user_token
+        return tracks
     except Exception as e:
-        print(f"Error fetching recently played tracks: {e}")
-        return []
+        error_msg = str(e)
+        if "401" in error_msg or "expired" in error_msg.lower() or "Unauthorized" in error_msg:
+            if retry_with_new_token:
+                print(f"\nToken expired: {error_msg}")
+                new_token = handle_token_expired()
+                if new_token:
+                    # Retry with new token
+                    try:
+                        data = fetch_spotify_api(endpoint, new_token)
+                        tracks = data.get('items', [])
+                        return tracks, new_token  # Return token too so caller can update it
+                    except Exception as e2:
+                        print(f"Error with new token: {e2}")
+                        return [], new_token
+                return [], user_token
+            else:
+                print(f"Error fetching recently played tracks: {e}")
+                return []
+        else:
+            print(f"Error fetching recently played tracks: {e}")
+            if retry_with_new_token:
+                return [], user_token
+            return []
 
 
 def find_track_by_isrc_or_title(isrc=None, title=None, duration_ms=None):
@@ -146,8 +262,15 @@ def find_track_by_isrc_or_title(isrc=None, title=None, duration_ms=None):
     return None
 
 
-def ingest_playlist_from_spotify(playlist_data, listener_id, user_token):
-    """Ingest a playlist from Spotify API data."""
+def ingest_playlist_from_spotify(playlist_data, listener_id, user_token, max_tracks_to_ingest=10):
+    """Ingest a playlist from Spotify API data.
+    
+    Args:
+        playlist_data: Spotify playlist data
+        listener_id: Database listener ID
+        user_token: Spotify user access token
+        max_tracks_to_ingest: Maximum number of new tracks to ingest from this playlist
+    """
     playlist_name = playlist_data.get('name', 'Unnamed Playlist')
     playlist_id_spotify = playlist_data.get('id')
     is_public = playlist_data.get('public', True)
@@ -178,13 +301,12 @@ def ingest_playlist_from_spotify(playlist_data, listener_id, user_token):
         print(f"  > Created playlist: {playlist_name} (ID: {db_playlist['playlist_id']})")
     
     try:
-        tracks_data = get_playlist_tracks(user_token, playlist_id_spotify)
+        tracks_data, user_token = get_playlist_tracks(user_token, playlist_id_spotify)
         print(f"  > Found {len(tracks_data)} tracks in playlist")
         
         added_count = 0
         skipped_count = 0
         ingested_count = 0
-        max_tracks_to_ingest = 8
         
         try:
             client_token = get_spotify_token()
@@ -208,10 +330,21 @@ def ingest_playlist_from_spotify(playlist_data, listener_id, user_token):
             
             if not db_track and client_token and ingested_count < max_tracks_to_ingest:
                 print(f"    [{idx}] Track not in database, attempting to ingest: {track_title}")
-                db_track = ingest_track_from_spotify(spotify_track, token=client_token)
+                db_track = ingest_track_from_spotify(spotify_track, token=client_token, ingest_album=True)
                 if db_track:
                     ingested_count += 1
                     print(f"      > Successfully ingested track: {track_title}")
+                    
+                    # Add song info: audio features, genres, etc.
+                    add_song_info(
+                        track_id=db_track['track_id'],
+                        spotify_track_data=spotify_track,
+                        token=client_token
+                    )
+                    
+                    # Note: Album and cover are automatically ingested by ingest_track_from_spotify
+                    # when ingest_album=True (which is the default)
+                    
                     time.sleep(0.2)
                 else:
                     print(f"      > Failed to ingest track: {track_title}")
@@ -220,6 +353,14 @@ def ingest_playlist_from_spotify(playlist_data, listener_id, user_token):
                 print(f"    [{idx}] Skipping track (not in database): {track_title}")
                 skipped_count += 1
                 continue
+            
+            # For existing tracks, add song info if missing
+            if db_track:
+                add_song_info(
+                    track_id=db_track['track_id'],
+                    spotify_track_data=spotify_track,
+                    token=client_token
+                )
             
             playlist_track_data = {
                 "playlist_id": db_playlist['playlist_id'],
@@ -242,8 +383,15 @@ def ingest_playlist_from_spotify(playlist_data, listener_id, user_token):
         print(f"  > Error fetching tracks: {e}")
 
 
-def ingest_playlists_from_spotify_api(username="cedricster", user_token=None, limit=50):
-    """Main function to ingest playlists from Spotify API."""
+def ingest_playlists_from_spotify_api(username="cedricster", user_token=None, limit=50, max_tracks_per_playlist=10):
+    """Main function to ingest playlists from Spotify API.
+    
+    Args:
+        username: Username for the user/listener
+        user_token: Spotify user access token
+        limit: Maximum number of playlists to fetch
+        max_tracks_per_playlist: Maximum number of new tracks to ingest per playlist
+    """
     if not user_token:
         print("ERROR: User access token is required.")
         return
@@ -253,11 +401,11 @@ def ingest_playlists_from_spotify_api(username="cedricster", user_token=None, li
         listener = get_or_create_listener(user['user_id'])
         
         print(f"\nFetching playlists from Spotify...")
-        playlists = get_user_playlists(user_token, limit=limit)
+        playlists, user_token = get_user_playlists(user_token, limit=limit)
         print(f"Found {len(playlists)} playlists")
         
         for playlist in playlists:
-            ingest_playlist_from_spotify(playlist, listener['listener_id'], user_token)
+            ingest_playlist_from_spotify(playlist, listener['listener_id'], user_token, max_tracks_to_ingest=max_tracks_per_playlist)
             time.sleep(0.5)
         
         print(f"\n✓ Successfully ingested {len(playlists)} playlists!")
@@ -268,7 +416,7 @@ def ingest_playlists_from_spotify_api(username="cedricster", user_token=None, li
         traceback.print_exc()
 
 
-def ingest_listening_history(username="cedricster", user_token=None, limit=50, max_tracks_to_ingest=10):
+def ingest_listening_history(username="cedricster", user_token=None, limit=50):
     """Ingest user's listening history from Spotify into PlayHistory table."""
     if not user_token:
         print("ERROR: User access token is required.")
@@ -285,7 +433,7 @@ def ingest_listening_history(username="cedricster", user_token=None, limit=50, m
             client_token = None
         
         print(f"\nFetching recently played tracks (limit: {limit})...")
-        recently_played = get_recently_played_tracks(user_token, limit=limit)
+        recently_played, user_token = get_recently_played_tracks(user_token, limit=limit)
         
         if not recently_played:
             print("\n⚠️  No recently played tracks found or error occurred.")
@@ -325,12 +473,20 @@ def ingest_listening_history(username="cedricster", user_token=None, limit=50, m
             
             db_track = find_track_by_isrc_or_title(isrc=isrc, title=track_title, duration_ms=duration_ms)
             
-            if not db_track and client_token and ingested_count < max_tracks_to_ingest:
+            if not db_track and client_token:
                 print(f"  [{idx}] Track not in database, attempting to ingest: {track_title}")
-                db_track = ingest_track_from_spotify(spotify_track, token=client_token)
+                db_track = ingest_track_from_spotify(spotify_track, token=client_token, ingest_album=True)
                 if db_track:
                     ingested_count += 1
                     print(f"    > Successfully ingested track: {track_title}")
+                    
+                    # Add song info: audio features, genres, etc.
+                    add_song_info(
+                        track_id=db_track['track_id'],
+                        spotify_track_data=spotify_track,
+                        token=client_token
+                    )
+                    
                     time.sleep(0.2)
                 else:
                     print(f"    > Failed to ingest track: {track_title}")
@@ -339,6 +495,14 @@ def ingest_listening_history(username="cedricster", user_token=None, limit=50, m
                 print(f"  [{idx}] Skipping track (not in database): {track_title}")
                 skipped_count += 1
                 continue
+            
+            # For existing tracks, add song info if missing
+            if db_track:
+                add_song_info(
+                    track_id=db_track['track_id'],
+                    spotify_track_data=spotify_track,
+                    token=client_token
+                )
             
             play_history_data = {
                 "listener_id": listener['listener_id'],
@@ -376,7 +540,8 @@ if __name__ == "__main__":
     print("Spotify Data Ingestion Script")
     print("=" * 50)
     
-    user_token = os.environ.get("SPOTIFY_USER_TOKEN")
+    # Try to get token from env or settings
+    user_token = os.environ.get("SPOTIFY_USER_TOKEN") or getattr(settings, 'SPOTIFY_USER_TOKEN', None)
     
     if not user_token:
         print("\nTo use this script, you need a Spotify user access token.")
@@ -404,7 +569,16 @@ if __name__ == "__main__":
     if choice in ["1", "3"]:
         limit_input = input("Enter max number of playlists to ingest (default: 50): ").strip()
         limit = int(limit_input) if limit_input else 50
-        ingest_playlists_from_spotify_api(username=username, user_token=user_token, limit=limit)
+        
+        tracks_per_playlist_input = input("Enter max number of new tracks to ingest per playlist (default: 10): ").strip()
+        max_tracks_per_playlist = int(tracks_per_playlist_input) if tracks_per_playlist_input else 10
+        
+        ingest_playlists_from_spotify_api(
+            username=username, 
+            user_token=user_token, 
+            limit=limit,
+            max_tracks_per_playlist=max_tracks_per_playlist
+        )
     
     if choice in ["2", "3"]:
         history_limit_input = input("Enter max number of recent tracks to fetch (default: 50): ").strip()
