@@ -100,9 +100,9 @@ function LandingPage() {
         <div className="footer-content">
           <p>&copy; 2025 Wavvy. All rights reserved.</p>
           <div className="footer-links">
-            <a href="#about">About</a>
-            <a href="#faq">FAQ</a>
-            <a href="#pricing">Pricing</a>
+            <span>About</span>
+            <span>FAQ</span>
+            <span>Pricing</span>
           </div>
         </div>
       </footer>
