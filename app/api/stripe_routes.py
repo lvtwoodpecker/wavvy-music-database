@@ -10,6 +10,7 @@ class StripeRoutes(base_routes.BaseRoutes):
         bp = Blueprint('stripe', __name__)
         settings = app.settings
         stripe_service: StripeService = app.services.stripe_service
+        user_service = app.services.user_service
         
         # ---- Stripe Checkout Session Creation ----
         @bp.route('/create-checkout-session', methods=['POST'])
@@ -76,7 +77,7 @@ class StripeRoutes(base_routes.BaseRoutes):
                 email = request.current_user["email"]
                 
                 # Get user from database to get full name
-                user = app.services.user_service.find_user_service.get_user_by_id(user_id)
+                user = user_service.find_user_service.get_user_by_id(user_id)
                 if not user:
                     return jsonify({"error": "User not found"}), 404
                 
