@@ -11,12 +11,14 @@ export const authService = {
       body: JSON.stringify(userData),
     });
 
-    const data = await response.json();
+    let data = null;
+    try { data = await response.json(); } catch { /* empty or non-JSON */ }
 
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to sign up');
+      throw new Error((data && data.error) || `Failed to sign up (HTTP ${response.status})`);
     }
 
+    if (!data) throw new Error('Empty response from server');
     return data;
   },
 
@@ -29,12 +31,14 @@ export const authService = {
       body: JSON.stringify({ email, password }),
     });
 
-    const data = await response.json();
+    let data = null;
+    try { data = await response.json(); } catch { }
 
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to log in');
+      throw new Error((data && data.error) || `Failed to log in (HTTP ${response.status})`);
     }
 
+    if (!data) throw new Error('Empty response from server');
     return data;
   },
 
@@ -47,12 +51,14 @@ export const authService = {
       },
     });
 
-    const data = await response.json();
+    let data = null;
+    try { data = await response.json(); } catch { }
 
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to fetch user');
+      throw new Error((data && data.error) || `Failed to fetch user (HTTP ${response.status})`);
     }
 
+    if (!data) throw new Error('Empty response from server');
     return data;
   },
 };
