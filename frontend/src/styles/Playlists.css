@@ -1,4 +1,4 @@
-.pls-main { padding:24px; }
+.pls-main { padding:96px 24px 120px; }
 .pls-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px; }
 .pls-list { display:grid; gap:10px; }
 .pls-item { display:flex; align-items:center; gap:12px; padding:10px; border:1px solid #2a2f35; border-radius:10px; }

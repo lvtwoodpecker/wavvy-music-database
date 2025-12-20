@@ -1,11 +1,11 @@
 .lib-main {
-  padding: 32px 24px 120px;
+  padding: 96px 24px 120px;
   max-width: 1200px;
   margin: 0 auto;
 
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 64px);
+  min-height: calc(100vh - 64px);
 }
 
 .lib-grid {

@@ -3,7 +3,7 @@
 .settings-main {
   min-height: 100vh;
   background: var(--bg);
-  padding: 2rem;
+  padding: 96px 2rem 2rem;
   display: flex;
   justify-content: center;
   align-items: flex-start;

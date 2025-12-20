@@ -1,0 +1,150 @@
+/* NavigationHeader Styles */
+
+.navigation-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: rgba(8, 11, 22, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(31, 37, 51, 0.5);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 16px;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(15, 19, 29, 0.8);
+  border: 1px solid rgba(31, 37, 51, 0.8);
+  color: var(--muted, #8c95a9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.nav-btn:hover {
+  background: rgba(31, 37, 51, 0.9);
+  color: var(--text, #f5f7fa);
+  border-color: rgba(99, 102, 241, 0.5);
+  transform: scale(1.05);
+}
+
+.nav-btn:active {
+  transform: scale(0.95);
+}
+
+.nav-btn.home-btn {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.nav-btn.home-btn:hover {
+  background: rgba(99, 102, 241, 0.25);
+  border-color: rgba(99, 102, 241, 0.5);
+}
+
+.nav-search {
+  flex: 1;
+  max-width: 600px;
+  display: flex;
+  justify-content: center;
+}
+
+.nav-search .search-bar-container {
+  width: 100%;
+  margin: 0;
+}
+
+.nav-search .search-input-wrapper {
+  background: rgba(15, 19, 29, 0.6);
+  border: 1px solid rgba(31, 37, 51, 0.6);
+}
+
+.nav-search .search-input-wrapper:focus-within {
+  background: rgba(15, 19, 29, 0.9);
+  border-color: #6366f1;
+}
+
+.nav-search .search-input::placeholder {
+  color: rgba(140, 149, 169, 0.8);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-btn.settings-btn {
+  width: 40px;
+  height: 40px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .navigation-header {
+    padding: 0 16px;
+    gap: 12px;
+  }
+
+  .nav-search {
+    max-width: 400px;
+  }
+
+  .nav-controls {
+    gap: 6px;
+  }
+
+  .nav-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .nav-btn.settings-btn {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navigation-header {
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .nav-search {
+    flex: 1;
+    max-width: none;
+  }
+
+  .nav-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .nav-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .nav-btn.settings-btn {
+    width: 32px;
+    height: 32px;
+  }
+}
