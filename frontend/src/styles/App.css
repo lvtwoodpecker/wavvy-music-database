@@ -1,45 +1,32 @@
 
+:root {
+  --bg: #0c0f14;
+  --panel: #121620;
+  --muted: #8c95a9;
+  --text: #f5f7fa;
+  --card-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
+  --radius: 14px;
+  --accent: #ffffff;
+  --accent-2: #6ee7b7;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
 #root {
-  max-width: 100%;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-  background-color: #61dafbaa;
+  min-height: 100vh;
 }
 
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+.app-root {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
 }

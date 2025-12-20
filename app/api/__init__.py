@@ -1,6 +1,8 @@
 # app/api/__init__.py
 from app.api.stripe_routes import StripeRoutes
 from app.api.auth_routes import AuthRoutes
+from app.api.playlist_routes import PlaylistRoutes
+from app.api.library_routes import LibraryRoutes
 
 class WavvyAPIBlueprints():
     @staticmethod
@@ -8,7 +10,9 @@ class WavvyAPIBlueprints():
         """Register all blueprints for the app."""
         registers_routes = {
             'stripe': StripeRoutes(app),
-            'auth': AuthRoutes(app)
+            'auth': AuthRoutes(app),
+            'playlist': PlaylistRoutes(app),
+            'library': LibraryRoutes(app),
         }
         
         for route_name, route_class in registers_routes.items():

@@ -1,0 +1,10 @@
+.pl-main { padding:32px 24px 120px; max-width: 1000px; margin: 0 auto; }
+.pl-header { display:flex; gap:16px; align-items:center; margin-bottom:16px; }
+.pl-cover { width:96px; height:96px; border-radius:18px; background: #1d2330; display:flex; align-items:center; justify-content:center; font-size:36px; color:var(--text); box-shadow: var(--card-shadow); border:1px solid #1f2533; }
+.pl-tracks { border-top:1px solid #1f2533; background:#0f131d; border-radius:12px; box-shadow: var(--card-shadow); }
+.pl-track { display:grid; grid-template-columns: 32px 1fr 1fr; gap:12px; padding:12px 12px; border-bottom:1px solid #1b202d; cursor:pointer; }
+.pl-track:hover { background:#101521; }
+.pl-track .idx { text-align:right; opacity:0.6; }
+.pl-track .title { font-weight:700; }
+.pl-track .artist { color: var(--muted); }
+.pl-main .error { color:#ff6b6b; }

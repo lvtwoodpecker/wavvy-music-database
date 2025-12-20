@@ -60,7 +60,7 @@ class WavvyAPI(Flask):
         """Initialize Supabase client."""
         self._supabase = SupabaseClient.init_supabase()
         if self._supabase is None:
-            raise RuntimeError("Failed to initialize Supabase client.")
+            print("[Supabase] Client not configured; continuing without Supabase")
 
     # ORM / DB
     @property

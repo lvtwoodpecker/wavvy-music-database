@@ -1,0 +1,9 @@
+.np-main { padding:32px 24px 120px; max-width: 1000px; margin: 0 auto; }
+.np-current { display:flex; gap:16px; align-items:center; margin-bottom:24px; }
+.np-current img, .np-cover { width:180px; height:180px; border-radius:18px; object-fit:cover; background: #1d2330; display:flex; align-items:center; justify-content:center; font-size:48px; color:var(--text); box-shadow: var(--card-shadow); border:1px solid #1f2533; }
+.np-meta h2 { margin:0; }
+.np-meta p { margin:4px 0 0 0; color: var(--muted); }
+.np-queue { background:#0f131d; border:1px solid #1f2533; border-radius:12px; box-shadow: var(--card-shadow); }
+.np-queue .np-queue-item { display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #1b202d; }
+.np-queue .np-queue-item.active { color: var(--text); font-weight:700; }
+.np-queue .by { color: var(--muted); }

@@ -37,7 +37,7 @@ class StripeRoutes(base_routes.BaseRoutes):
             
             # for now, we add fallback defaults for testing
             user_id = data.get('user_id', 'anonymous')
-            amount = data.get('amount', 0)
+            amount = data.get('amount') if data.get('amount') is not None else data.get('amount_cents', 0)
             currency = data.get('currency', 'usd')
             payment_for = data.get('payment_for', 'general')  
             

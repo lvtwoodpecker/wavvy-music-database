@@ -72,10 +72,6 @@ def test_user_history_recommendations():
     # Get a listener
     listeners = supabase.from_("Listener").select("listener_id").limit(1).execute()
     
-    if not listeners.data:
-        print("No listeners found in database")
-        return
-    
     listener_id = listeners.data[0]['listener_id']
     print(f"\nListener ID: {listener_id}")
     
