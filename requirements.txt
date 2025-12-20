@@ -13,3 +13,5 @@ pytest
 PyJWT
 bcrypt
 python-dotenv
+mermaid-py
+Pillow
