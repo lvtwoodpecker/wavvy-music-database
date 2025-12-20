@@ -5,6 +5,7 @@
   justify-content: center;
   background: #1f2933;
   color: #f9fafb;
+  overflow-x: hidden;
 }
 
 .payment-cancelled-card {

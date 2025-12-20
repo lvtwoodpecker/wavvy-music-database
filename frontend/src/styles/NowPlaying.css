@@ -1,4 +1,4 @@
-.np-main { padding: var(--page-padding-top) 24px 120px; max-width: 1000px; margin: 0 auto; }
+.np-main { padding: var(--page-padding-top) 24px 120px; max-width: 1000px; margin: 0 auto; overflow-x: hidden; }
 .np-current { display:flex; gap:16px; align-items:center; margin-bottom:24px; }
 .np-current img, .np-cover { width:180px; height:180px; border-radius:18px; object-fit:cover; background: #1d2330; display:flex; align-items:center; justify-content:center; font-size:48px; color:var(--text); box-shadow: var(--card-shadow); border:1px solid #1f2533; }
 .np-meta h2 { margin:0; }

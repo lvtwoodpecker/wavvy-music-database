@@ -21,14 +21,9 @@ body {
   color: var(--text);
 }
 
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  min-height: 100vh;
-}
-
 .app-root {
   min-height: 100vh;
   background: var(--bg);
   color: var(--text);
+  overflow-x: hidden;
 }

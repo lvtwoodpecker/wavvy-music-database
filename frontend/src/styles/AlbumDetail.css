@@ -3,6 +3,7 @@
   padding: var(--page-padding-top) 2rem 120px;
   max-width: 900px;
   margin: 0 auto;
+  overflow-x: hidden;
 }
 
 .back-btn {
