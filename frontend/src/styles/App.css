@@ -8,6 +8,8 @@
   --radius: 14px;
   --accent: #ffffff;
   --accent-2: #6ee7b7;
+  --header-height: 64px;
+  --page-padding-top: 96px; /* header height + 32px spacing */
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   color: var(--text);
   background: var(--bg);

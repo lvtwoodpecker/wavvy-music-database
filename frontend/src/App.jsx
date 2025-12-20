@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { PlayerProvider } from "./context/PlayerContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import NavigationHeader from "./components/NavigationHeader";
 import LandingPage from "./pages/LandingPage.jsx";
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
@@ -36,12 +37,15 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             
-            {/* Protected routes */}
+            {/* Protected routes with NavigationHeader */}
             <Route
               path="/app"
               element={
                 <ProtectedRoute>
-                  <Home />
+                  <>
+                    <NavigationHeader />
+                    <Home />
+                  </>
                 </ProtectedRoute>
               }
             />
@@ -49,7 +53,10 @@ function App() {
                 path="/playlists"
                 element={
                   <ProtectedRoute>
-                    <Playlists />
+                    <>
+                      <NavigationHeader />
+                      <Playlists />
+                    </>
                   </ProtectedRoute>
                 }
               />
@@ -57,7 +64,10 @@ function App() {
                 path="/liked"
                 element={
                   <ProtectedRoute>
-                    <LikedSongs />
+                    <>
+                      <NavigationHeader />
+                      <LikedSongs />
+                    </>
                   </ProtectedRoute>
                 }
               />
@@ -65,7 +75,10 @@ function App() {
                 path="/library"
                 element={
                   <ProtectedRoute>
-                    <Library />
+                    <>
+                      <NavigationHeader />
+                      <Library />
+                    </>
                   </ProtectedRoute>
                 }
               />
@@ -73,7 +86,10 @@ function App() {
                 path="/album/:albumName"
                 element={
                   <ProtectedRoute>
-                    <AlbumDetail />
+                    <>
+                      <NavigationHeader />
+                      <AlbumDetail />
+                    </>
                   </ProtectedRoute>
                 }
               />
@@ -81,7 +97,10 @@ function App() {
                 path="/playlist/:id"
                 element={
                   <ProtectedRoute>
-                    <PlaylistPage />
+                    <>
+                      <NavigationHeader />
+                      <PlaylistPage />
+                    </>
                   </ProtectedRoute>
                 }
               />
@@ -89,7 +108,10 @@ function App() {
                 path="/now-playing"
                 element={
                   <ProtectedRoute>
-                    <NowPlaying />
+                    <>
+                      <NavigationHeader />
+                      <NowPlaying />
+                    </>
                   </ProtectedRoute>
                 }
               />
@@ -97,7 +119,10 @@ function App() {
               path="/settings"
               element={
                 <ProtectedRoute>
-                  <Settings />
+                  <>
+                    <NavigationHeader />
+                    <Settings />
+                  </>
                 </ProtectedRoute>
               }
             />
