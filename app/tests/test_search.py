@@ -4,7 +4,7 @@ Tests the SearchService, SearchRepository, and search API endpoints.
 """
 
 import pytest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 from app.services.search.search_service import SearchService
 from app.services.search.search_repository import SearchRepository
 from app.services.search.search_track import SearchTrack

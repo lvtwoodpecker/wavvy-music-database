@@ -1,4 +1,4 @@
-from typing import Optional, Callable
+from typing import Callable
 
 from app.services import service
 from app.services.search.search_repository import SearchRepository
