@@ -90,7 +90,8 @@ on conflict (track_id) do update set
   spotify_id = excluded.spotify_id,
   date_added = excluded.date_added,
   search_tsv = excluded.search_tsv;
-Enable Searches
+
+-- Enable Searches
 create index if not exists ods_track_search_tsv_idx
 on public.ods_track_search
 using gin (search_tsv);
@@ -239,9 +240,6 @@ set
 -- Normalized gin trigram indexes
 create index if not exists ods_track_title_norm_trgm_idx
 on public.ods_track_search using gin (track_title_norm gin_trgm_ops);
-
-create index if not exists ods_artist_names_norm_trgm_idx
-on public.ods_track_search using gin (artist_names_norm gin_trgm_ops);
 
 create index if not exists ods_album_titles_norm_trgm_idx
 on public.ods_track_search using gin (album_titles_norm gin_trgm_ops);
