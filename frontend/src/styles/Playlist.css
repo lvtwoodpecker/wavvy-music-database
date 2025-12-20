@@ -2,7 +2,7 @@
   --pl-track-row-height: 56px; /* adjust if needed */
 }
 
-.pl-main { padding: var(--page-padding-top, 96px) 24px 120px; max-width: 1000px; margin: 0 auto; }
+.pl-main { padding: var(--page-padding-top) 24px 120px; max-width: 1000px; margin: 0 auto; }
 
 .back-btn { background: none; border: none; color: #a0a0a0; font-size: 1rem; cursor: pointer; margin-bottom: 1.5rem; padding: 0.5rem 0; transition: color 0.2s; }
 .back-btn:hover { color: #fff; }
