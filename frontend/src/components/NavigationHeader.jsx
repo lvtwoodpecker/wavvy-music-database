@@ -1,10 +1,12 @@
 // NavigationHeader component for fixed header navigation
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import SearchBar from './SearchBar';
 import '../styles/NavigationHeader.css';
 
 function NavigationHeader() {
+  const { user, token, logout, isPremium } = useAuth();
   const navigate = useNavigate();
 
   const handleBack = () => {
@@ -107,6 +109,21 @@ function NavigationHeader() {
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
           </svg>
         </button>
+      </div>
+
+      <div className="nav-actions user-info">
+        <div className="mode-toggle">
+          <button className="pill active">Listener</button>
+          <button className="pill">Advertiser</button>
+        </div>
+        <div className="user-chip">
+          <div className="user-meta">
+            <span className="muted">Logged in as</span>
+            <span className="strong">{user?.email}</span>
+            {isPremium && <span className="premium-pill">★ Premium</span>}
+          </div>
+          <div className="avatar">{(user?.first_name?.[0] || user?.username?.[0] || 'W').toUpperCase()}</div>
+        </div>
       </div>
     </header>
   );

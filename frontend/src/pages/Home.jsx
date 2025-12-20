@@ -42,21 +42,6 @@ function Home() {
 
   return (
     <main className="home-main">
-      <div className="home-topbar">
-        <div className="brand">Wavvy</div>
-        <div className="mode-toggle">
-          <button className="pill active">Listener</button>
-          <button className="pill">Advertiser</button>
-        </div>
-        <div className="user-chip">
-          <div className="user-meta">
-            <span className="muted">Logged in as</span>
-            <span className="strong">{user?.email}</span>
-            {isPremium && <span className="premium-pill">★ Premium</span>}
-          </div>
-          <div className="avatar">{(user?.first_name?.[0] || user?.username?.[0] || 'W').toUpperCase()}</div>
-        </div>
-      </div>
 
       <section className="hero">
         <span className="listener-mode">Listener Mode</span>
@@ -121,7 +106,7 @@ function Home() {
           ))}
         </div>
       </section>
-
+{/* 
       {!isPremium && (
         <section className="cta">
           <div className="cta-text">
@@ -149,7 +134,7 @@ function Home() {
             <button onClick={handleLogout} className="logout-button">Logout</button>
           </div>
         </section>
-      )}
+      )} */}
     </main>
   );
 }
