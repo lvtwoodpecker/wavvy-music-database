@@ -25,6 +25,21 @@ export function AuthProvider({ children }) {
     }
   });
   
+  const [isPremium, setIsPremium] = useState(() => {
+    try {
+      const storedUser = localStorage.getItem('auth_user');
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        if (parsed?.is_premium) return true;
+      }
+      const flag = localStorage.getItem('is_premium');
+      return flag === 'true';
+    } catch (error) {
+      console.error('Failed to retrieve premium flag:', error);
+      return false;
+    }
+  });
+  
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     try {
       const hasToken = !!localStorage.getItem('auth_token');
@@ -37,28 +52,62 @@ export function AuthProvider({ children }) {
   });
 
   const login = (authToken, userData) => {
+    const premiumFlag = !!userData?.is_premium;
     setToken(authToken);
     setUser(userData);
+    setIsPremium(premiumFlag);
     setIsAuthenticated(true);
     localStorage.setItem('auth_token', authToken);
     localStorage.setItem('auth_user', JSON.stringify(userData));
+    localStorage.setItem('is_premium', premiumFlag ? 'true' : 'false');
   };
 
   const logout = () => {
     setToken(null);
     setUser(null);
+    setIsPremium(false);
     setIsAuthenticated(false);
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
+    localStorage.removeItem('is_premium');
+    localStorage.removeItem('premium_expires_at');
+  };
+
+  const markPremium = (planName = 'Premium') => {
+    setIsPremium(true);
+    const updatedUser = user ? { ...user, is_premium: true, subscription_plan: planName } : { is_premium: true, subscription_plan: planName };
+    setUser(updatedUser);
+    localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+    localStorage.setItem('is_premium', 'true');
+  };
+
+  const cancelPremium = (clearUserFlag = true) => {
+    setIsPremium(false);
+    const updatedUser = clearUserFlag ? (user ? { ...user, is_premium: false } : null) : user;
+    setUser(updatedUser);
+    if (clearUserFlag) {
+      localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+      localStorage.setItem('is_premium', 'false');
+    }
+    localStorage.removeItem('premium_expires_at');
+  };
+
+  const setPremiumExpiry = (isoString) => {
+    if (!isoString) return;
+    localStorage.setItem('premium_expires_at', isoString);
   };
 
   const value = {
     user,
     token,
     isAuthenticated,
+    isPremium,
     loading: false,
     login,
     logout,
+    markPremium,
+    cancelPremium,
+    setPremiumExpiry,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
+import { useAuth } from '../context/AuthContext'
 import '../styles/PayButton.css'
 
 function PayButton() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const { user, token } = useAuth()
 
   const handleClick = async () => {
     setLoading(true)
@@ -11,12 +13,11 @@ function PayButton() {
 
     try {
 
-      // hardcoded user ID for testing purposes
       const res = await fetch("/api/stripe/create-checkout-session", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                userId: "mock-user-123",
+                user_id: user?.user_id || user?.id || 'mock-user-123',
                 amount_cents: 999, // $9.99
                 currency: "usd",
                 payment_for: "1-Month Wavvy Premium",

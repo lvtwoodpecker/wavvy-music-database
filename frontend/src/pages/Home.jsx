@@ -8,7 +8,7 @@ import { musicService } from '../services/musicService';
 import '../styles/Home.css';
 
 function Home() {
-  const { user, token, logout } = useAuth();
+  const { user, token, logout, isPremium } = useAuth();
   const navigate = useNavigate();
   const { playTracks } = usePlayer();
   const [recentAlbums, setRecentAlbums] = useState([]);
@@ -52,6 +52,7 @@ function Home() {
           <div className="user-meta">
             <span className="muted">Logged in as</span>
             <span className="strong">{user?.email}</span>
+            {isPremium && <span className="premium-pill">★ Premium</span>}
           </div>
           <div className="avatar">{(user?.first_name?.[0] || user?.username?.[0] || 'W').toUpperCase()}</div>
         </div>
@@ -121,19 +122,34 @@ function Home() {
         </div>
       </section>
 
-      <section className="cta">
-        <div className="cta-text">
-          <h3>Wavvy Premium (Test Mode)</h3>
-          <p>Stripe test cards only — no real money happens here.</p>
-          <div className="cta-actions">
-            <PayButton />
+      {!isPremium && (
+        <section className="cta">
+          <div className="cta-text">
+            <h3>Wavvy Premium (Test Mode)</h3>
+            <p>Stripe test cards only — no real money happens here.</p>
+            <div className="cta-actions">
+              <PayButton />
+            </div>
           </div>
-        </div>
-        <div className="user-actions">
-          <button onClick={handleSettings} className="settings-button">Settings</button>
-          <button onClick={handleLogout} className="logout-button">Logout</button>
-        </div>
-      </section>
+          <div className="user-actions">
+            <button onClick={handleSettings} className="settings-button">Settings</button>
+            <button onClick={handleLogout} className="logout-button">Logout</button>
+          </div>
+        </section>
+      )}
+
+      {isPremium && (
+        <section className="cta premium-cta">
+          <div className="cta-text">
+            <h3>Thanks for being Premium!</h3>
+            <p>Enjoy full access. You can manage your subscription in Settings.</p>
+          </div>
+          <div className="user-actions">
+            <button onClick={handleSettings} className="settings-button">Settings</button>
+            <button onClick={handleLogout} className="logout-button">Logout</button>
+          </div>
+        </section>
+      )}
     </main>
   );
 }

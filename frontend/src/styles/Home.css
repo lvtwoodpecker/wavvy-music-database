@@ -54,6 +54,19 @@
   box-shadow: var(--card-shadow);
 }
 
+.premium-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #f7c948, #f5a524);
+  color: #0b0f19;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-top: 2px;
+}
+
 .user-meta { display: flex; flex-direction: column; }
 .user-meta .muted { color: var(--muted); font-size: 12px; }
 .user-meta .strong { font-weight: 700; }
@@ -232,6 +245,10 @@
   grid-template-columns: 2fr 1fr;
   gap: 12px;
   box-shadow: var(--card-shadow);
+}
+.premium-cta {
+  border: 1px solid #2e3a52;
+  background: linear-gradient(135deg, rgba(247,201,72,0.08), rgba(245,165,36,0.05));
 }
 .cta-text h3 { margin:0 0 6px 0; }
 .cta-text p { margin:0 0 12px 0; color: var(--muted); }

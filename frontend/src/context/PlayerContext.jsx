@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 import React, { createContext, useContext, useMemo, useRef, useState, useEffect } from 'react';
 import { playHistoryService } from '../services/playHistoryService';
 import { useAuth } from './AuthContext';
@@ -175,4 +173,3 @@ export function usePlayer() {
   if (!ctx) throw new Error('usePlayer must be used within PlayerProvider');
   return ctx;
 }
->>>>>>> a26026be19ebc256ead4b45831ff6cedfc8ed287

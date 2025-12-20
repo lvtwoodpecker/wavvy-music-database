@@ -101,22 +101,8 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/payment-success"
-              element={
-                <ProtectedRoute>
-                  <PaymentSuccess />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/payment-cancelled"
-              element={
-                <ProtectedRoute>
-                  <PaymentCancelled />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/payment-cancelled" element={<PaymentCancelled />} />
             
             {/* Catch all - redirect to landing page */}
             <Route path="*" element={<Navigate to="/" replace />} />

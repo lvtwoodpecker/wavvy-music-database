@@ -3,17 +3,19 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { stripeService } from '../services/stripeService';
+import { subscriptionService } from '../services/subscriptionService';
 import { authService } from '../services/authService';
 import '../styles/Settings.css';
 
 function Settings() {
-  const { user, token, logout } = useAuth();
+  const { user, token, logout, isPremium, cancelPremium, setPremiumExpiry } = useAuth();
   const navigate = useNavigate();
   const [stripeStatus, setStripeStatus] = useState({
     connected: false,
     stripe_customer_id: null,
     created_at: null,
   });
+  const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState(null);
@@ -24,7 +26,22 @@ function Settings() {
 
   useEffect(() => {
     fetchStripeStatus();
+    fetchSubscriptionStatus();
   }, []);
+
+  const fetchSubscriptionStatus = async () => {
+    if (!token) return;
+    try {
+      const sub = await subscriptionService.getStatus(token);
+      setSubscription(sub);
+      if (sub?.status === 'active') {
+        cancelPremium(false); // do not clear local if active
+        setPremiumExpiry(sub.expires_at);
+      }
+    } catch (err) {
+      console.error('Error fetching subscription status:', err);
+    }
+  };
 
   const fetchStripeStatus = async () => {
     try {
@@ -121,6 +138,10 @@ function Settings() {
                 <span className="info-label">Role:</span>
                 <span className="info-value">{user?.role}</span>
               </div>
+              <div className="info-item">
+                <span className="info-label">Subscription:</span>
+                <span className="info-value">{isPremium ? 'Premium' : 'Free'}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -215,6 +236,27 @@ function Settings() {
                   <p className="stripe-connected-message">
                     Your Stripe account is connected and ready for payments.
                   </p>
+                  <div className="stripe-simulate-row">
+                    <button className="secondary" onClick={async () => {
+                      try {
+                        await subscriptionService.cancel(token);
+                        cancelPremium();
+                        await fetchSubscriptionStatus();
+                      } catch (err) {
+                        setError(err.message);
+                      }
+                    }}>
+                      Cancel Subscription
+                    </button>
+                    <button className="secondary" onClick={async () => {
+                      // Mock: set expiry in 30 days locally
+                      const expires = new Date();
+                      expires.setDate(expires.getDate() + 30);
+                      setPremiumExpiry(expires.toISOString());
+                    }}>
+                      Set 30d Expiry (Local)
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
