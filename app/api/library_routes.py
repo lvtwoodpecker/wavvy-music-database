@@ -31,7 +31,7 @@ class LibraryRoutes(base_routes.BaseRoutes):
                 except ValueError:
                     limit = 100
                 
-                search_result = search_service.search(query, mode="hybrid", limit=limit)
+                search_result = search_service.search(query, limit=limit)
                 return jsonify(search_result["results"]), 200
             
             # Otherwise, use standard library listing

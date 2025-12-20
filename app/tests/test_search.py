@@ -4,9 +4,11 @@ Tests the SearchService, SearchRepository, and search API endpoints.
 """
 
 import pytest
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock, MagicMock
 from app.services.search.search_service import SearchService
 from app.services.search.search_repository import SearchRepository
+from app.services.search.search_track import SearchTrack
+from app.services.search.search_types import TrackSearchHit
 from app.models.ODSTrackSearch import ODSTrackSearch
 
 
@@ -19,6 +21,7 @@ class TestSearchService:
         app = Mock()
         app.settings = Mock()
         app.db_session_factory = Mock()
+        app._db_session_factory = Mock()
         return app
     
     @pytest.fixture
@@ -27,141 +30,138 @@ class TestSearchService:
         return Mock(spec=SearchRepository)
     
     @pytest.fixture
-    def search_service(self, mock_app, mock_repository):
+    def mock_track_search(self):
+        """Create a mock SearchTrack."""
+        return Mock(spec=SearchTrack)
+    
+    @pytest.fixture
+    def search_service(self, mock_app):
         """Create a SearchService instance with mocked dependencies."""
         service = SearchService(mock_app)
-        service._repository = mock_repository
+        service._repo = Mock(spec=SearchRepository)
+        service._track_search = Mock(spec=SearchTrack)
         return service
     
-    def test_search_with_empty_query(self, search_service):
-        """Test search with empty query returns empty results."""
-        result = search_service.search("")
-        
-        assert result["results"] == []
-        assert result["count"] == 0
-        assert result["query"] == ""
-    
-    def test_search_with_valid_query(self, search_service, mock_repository):
+    def test_search_with_valid_query(self, search_service):
         """Test search with valid query returns results."""
-        mock_track = Mock(spec=ODSTrackSearch)
-        mock_track.track_id = 1
-        mock_track.title = "Test Track"
-        mock_track.to_dict = lambda: {
-            "track_id": 1,
-            "title": "Test Track",
-            "artist_names": "Test Artist"
+        mock_result = {
+            "query": "test",
+            "results": [
+                {
+                    "track_id": 1,
+                    "track_title": "Test Track",
+                    "artist_names": "Test Artist",
+                    "album_titles": "Test Album",
+                    "genre_names": "Rock",
+                    "score": 0.9,
+                    "source": "fts"
+                }
+            ],
+            "used": {"fts": True, "trigram": False}
         }
         
-        mock_repository.search_tracks_hybrid.return_value = [mock_track]
+        search_service._track_search.search_tracks.return_value = mock_result
         
-        result = search_service.search("test", mode="hybrid", limit=50)
+        result = search_service.search("test", limit=25)
         
+        assert result["query"] == "test"
         assert len(result["results"]) == 1
         assert result["results"][0]["track_id"] == 1
-        assert result["query"] == "test"
-        assert result["count"] == 1
+        search_service._track_search.search_tracks.assert_called_once_with("test", limit=25)
     
-    def test_search_mode_fts(self, search_service, mock_repository):
-        """Test search with FTS mode."""
-        mock_repository.search_tracks_fts.return_value = []
-        
-        result = search_service.search("test", mode="fts")
-        
-        mock_repository.search_tracks_fts.assert_called_once()
-        assert result["results"] == []
-    
-    def test_search_mode_fuzzy(self, search_service, mock_repository):
-        """Test search with fuzzy mode."""
-        mock_repository.search_tracks_fuzzy.return_value = []
-        
-        result = search_service.search("test", mode="fuzzy")
-        
-        mock_repository.search_tracks_fuzzy.assert_called_once()
-        assert result["results"] == []
-    
-    def test_search_limit_clamping(self, search_service, mock_repository):
-        """Test that limit is clamped to valid range."""
-        mock_repository.search_tracks_hybrid.return_value = []
-        
-        # Test upper bound
-        search_service.search("test", limit=200)
-        args, kwargs = mock_repository.search_tracks_hybrid.call_args
-        assert args[1] == 100  # limit is second positional arg
-        
-        # Test lower bound
-        search_service.search("test", limit=-5)
-        args, kwargs = mock_repository.search_tracks_hybrid.call_args
-        assert args[1] == 1  # limit is second positional arg
-    
-    def test_sanitize_query(self, search_service):
-        """Test query sanitization."""
-        # Test whitespace stripping
-        assert search_service._sanitize_query("  test  ") == "test"
-        
-        # Test length limiting
-        long_query = "a" * 300
-        result = search_service._sanitize_query(long_query)
-        assert len(result) == 200
-        
-        # Test empty query
-        assert search_service._sanitize_query("") == ""
-        assert search_service._sanitize_query(None) == ""
-    
-    def test_search_by_title(self, search_service, mock_repository):
-        """Test searching by title."""
-        mock_repository.search_tracks_hybrid.return_value = []
-        
-        result = search_service.search_by_title("Test Title")
-        
-        assert isinstance(result, list)
-        mock_repository.search_tracks_hybrid.assert_called_once()
-    
-    def test_search_by_artist(self, search_service, mock_repository):
-        """Test searching by artist."""
-        mock_repository.search_tracks_hybrid.return_value = []
-        
-        result = search_service.search_by_artist("Test Artist")
-        
-        assert isinstance(result, list)
-        mock_repository.search_tracks_hybrid.assert_called_once()
-    
-    def test_get_track(self, search_service, mock_repository):
-        """Test getting a single track by ID."""
-        mock_track = Mock(spec=ODSTrackSearch)
-        mock_track.to_dict = lambda: {"track_id": 1, "title": "Test"}
-        mock_repository.get_track_by_id.return_value = mock_track
-        
-        result = search_service.get_track(1)
-        
-        assert result is not None
-        assert result["track_id"] == 1
-        mock_repository.get_track_by_id.assert_called_once_with(1)
-    
-    def test_get_track_not_found(self, search_service, mock_repository):
-        """Test getting a track that doesn't exist."""
-        mock_repository.get_track_by_id.return_value = None
-        
-        result = search_service.get_track(999)
-        
-        assert result is None
-    
-    def test_refresh_index(self, search_service, mock_repository):
+    def test_refresh_index(self, search_service):
         """Test refreshing the search index."""
-        mock_repository.refresh_search_index.return_value = True
+        search_service._repo.refresh_search_index.return_value = True
         
         result = search_service.refresh_index()
         
         assert result is True
-        mock_repository.refresh_search_index.assert_called_once()
+        search_service._repo.refresh_search_index.assert_called_once()
     
-    def test_get_stats(self, search_service, mock_repository):
+    def test_get_stats(self, search_service):
         """Test getting search index statistics."""
-        mock_repository.get_total_tracks.return_value = 100
+        search_service._repo.get_total_tracks.return_value = 100
         
         result = search_service.get_stats()
         
         assert result["total_tracks"] == 100
         assert result["index_name"] == "ods_track_search"
+
+
+class TestSearchTrack:
+    """Test cases for SearchTrack."""
+    
+    @pytest.fixture
+    def mock_repository(self):
+        """Create a mock SearchRepository."""
+        return Mock(spec=SearchRepository)
+    
+    @pytest.fixture
+    def search_track(self, mock_repository):
+        """Create a SearchTrack instance."""
+        return SearchTrack(mock_repository)
+    
+    def test_search_empty_query(self, search_track):
+        """Test search with empty query."""
+        result = search_track.search_tracks("")
+        
+        assert result["query"] == ""
+        assert result["results"] == []
+        assert result["used"]["fts"] is False
+        assert result["used"]["trigram"] is False
+    
+    def test_search_short_query_prefers_trigram(self, search_track, mock_repository):
+        """Test that short queries (<=3 chars) prefer trigram."""
+        mock_hit = TrackSearchHit(
+            track_id=1,
+            track_title="ABC",
+            artist_names="Artist",
+            album_titles="Album",
+            genre_names="Pop",
+            score=0.8,
+            source="trigram"
+        )
+        mock_repository.trigram_search.return_value = [mock_hit]
+        
+        result = search_track.search_tracks("abc")
+        
+        # Should only use trigram for short queries
+        assert result["used"]["fts"] is False
+        assert result["used"]["trigram"] is True
+        mock_repository.trigram_search.assert_called_once()
+    
+    def test_search_long_query_uses_fts_first(self, search_track, mock_repository):
+        """Test that longer queries use FTS first."""
+        mock_hit = TrackSearchHit(
+            track_id=1,
+            track_title="Long Track Name",
+            artist_names="Artist",
+            album_titles="Album",
+            genre_names="Rock",
+            score=0.9,
+            source="fts"
+        )
+        mock_repository.fts_search.return_value = [mock_hit] * 10  # Return enough results
+        
+        result = search_track.search_tracks("long track name")
+        
+        # Should use FTS for longer queries and not need trigram
+        assert result["used"]["fts"] is True
+        assert result["used"]["trigram"] is False
+        mock_repository.fts_search.assert_called_once()
+    
+    def test_merge_best_deduplicates(self, search_track, mock_repository):
+        """Test that merge_best deduplicates and picks highest score."""
+        hit1 = TrackSearchHit(1, "Track", "Artist", "Album", "Rock", 0.8, "fts")
+        hit2 = TrackSearchHit(1, "Track", "Artist", "Album", "Rock", 0.9, "trigram")
+        hit3 = TrackSearchHit(2, "Track2", "Artist2", "Album2", "Pop", 0.7, "fts")
+        
+        merged = search_track._merge_best([hit1], [hit2, hit3], limit=10)
+        
+        assert len(merged) == 2
+        # Should keep hit2 (score 0.9) over hit1 (score 0.8) for track_id=1
+        assert merged[0].track_id == 1
+        assert merged[0].score == 0.9
 
 
 class TestODSTrackSearchModel:
@@ -171,13 +171,13 @@ class TestODSTrackSearchModel:
         """Test converting model to dictionary."""
         track = ODSTrackSearch()
         track.track_id = 1
-        track.title = "Test Track"
+        track.track_title = "Test Track"
         track.artist_names = "Artist 1, Artist 2"
-        track.album_title = "Test Album"
+        track.album_titles = "Test Album"
         track.genre_names = "Rock, Pop"
         track.duration_ms = 180000
-        track.audio_file_url = "http://example.com/audio.mp3"
-        track.cover_image_url = "http://example.com/cover.jpg"
+        track.spotify_id = "spotify123"
+        track.date_added = None
         track.updated_at = None
         
         result = track.to_dict()
@@ -188,12 +188,13 @@ class TestODSTrackSearchModel:
         assert result["album_title"] == "Test Album"
         assert result["genre_names"] == "Rock, Pop"
         assert result["duration_ms"] == 180000
+        assert result["spotify_id"] == "spotify123"
     
     def test_model_repr(self):
         """Test model string representation."""
         track = ODSTrackSearch()
         track.track_id = 1
-        track.title = "Test Track"
+        track.track_title = "Test Track"
         track.artist_names = "Test Artist"
         
         repr_str = repr(track)
@@ -201,25 +202,3 @@ class TestODSTrackSearchModel:
         assert "ODSTrackSearch" in repr_str
         assert "track_id=1" in repr_str
         assert "Test Track" in repr_str
-
-
-def test_query_sanitization():
-    """Test various query sanitization scenarios."""
-    # Mock app for service initialization
-    mock_app = Mock()
-    mock_app.settings = Mock()
-    mock_app.db_session_factory = Mock()
-    
-    service = SearchService(mock_app)
-    service._repository = Mock()
-    
-    # Test whitespace handling
-    assert service._sanitize_query("   hello   ") == "hello"
-    
-    # Test length limiting
-    long_query = "x" * 250
-    result = service._sanitize_query(long_query)
-    assert len(result) <= 200
-    
-    # Test None handling
-    assert service._sanitize_query(None) == ""
