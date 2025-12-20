@@ -3,9 +3,12 @@ Search API routes for track search functionality.
 Provides endpoints for searching tracks using FTS and trigram matching.
 """
 
+import logging
 from flask import Blueprint, jsonify, request
 from app.api.base_routes import BaseRoutes
 from app.utils.auth import login_required
+
+logger = logging.getLogger(__name__)
 
 
 class SearchRoutes(BaseRoutes):
@@ -42,7 +45,7 @@ class SearchRoutes(BaseRoutes):
                 {
                     "results": [...],
                     "query": "search query",
-                    "total": 10,
+                    "count": 10,
                     "limit": 50,
                     "offset": 0
                 }
@@ -77,7 +80,7 @@ class SearchRoutes(BaseRoutes):
                 )
                 return jsonify(results), 200
             except Exception as e:
-                print(f"Search error: {e}")
+                logger.error(f"Search error: {e}", exc_info=True)
                 return jsonify({
                     "error": "An error occurred during search"
                 }), 500
@@ -113,7 +116,7 @@ class SearchRoutes(BaseRoutes):
                 results = search_service.search_by_title(title, limit)
                 return jsonify(results), 200
             except Exception as e:
-                print(f"Title search error: {e}")
+                logger.error(f"Title search error: {e}", exc_info=True)
                 return jsonify({
                     "error": "An error occurred during search"
                 }), 500
@@ -149,7 +152,7 @@ class SearchRoutes(BaseRoutes):
                 results = search_service.search_by_artist(artist, limit)
                 return jsonify(results), 200
             except Exception as e:
-                print(f"Artist search error: {e}")
+                logger.error(f"Artist search error: {e}", exc_info=True)
                 return jsonify({
                     "error": "An error occurred during search"
                 }), 500
@@ -175,7 +178,7 @@ class SearchRoutes(BaseRoutes):
                         "error": "Track not found"
                     }), 404
             except Exception as e:
-                print(f"Get track error: {e}")
+                logger.error(f"Get track error: {e}", exc_info=True)
                 return jsonify({
                     "error": "An error occurred retrieving the track"
                 }), 500
@@ -203,7 +206,7 @@ class SearchRoutes(BaseRoutes):
                         "error": "Failed to refresh search index"
                     }), 500
             except Exception as e:
-                print(f"Index refresh error: {e}")
+                logger.error(f"Index refresh error: {e}", exc_info=True)
                 return jsonify({
                     "error": "An error occurred refreshing the index"
                 }), 500
@@ -221,7 +224,7 @@ class SearchRoutes(BaseRoutes):
                 stats = search_service.get_stats()
                 return jsonify(stats), 200
             except Exception as e:
-                print(f"Stats error: {e}")
+                logger.error(f"Stats error: {e}", exc_info=True)
                 return jsonify({
                     "error": "An error occurred retrieving stats"
                 }), 500

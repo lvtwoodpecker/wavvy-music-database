@@ -86,5 +86,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Grant permissions (adjust as needed for your setup)
--- GRANT SELECT, INSERT, UPDATE, DELETE ON public.ods_track_search TO your_user;
+-- Grant permissions (adjust role names as needed for your environment)
+-- Example: GRANT SELECT, INSERT, UPDATE, DELETE ON public.ods_track_search TO wavvy_app_user;
+-- Consult your security configuration document for appropriate role names and permissions.

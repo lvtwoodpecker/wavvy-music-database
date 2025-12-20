@@ -85,7 +85,7 @@ curl -X POST http://localhost:5000/api/search/refresh \
     }
   ],
   "query": "search term",
-  "total": 10,
+  "count": 10,
   "limit": 50,
   "offset": 0
 }

@@ -38,7 +38,7 @@ class TestSearchService:
         result = search_service.search("")
         
         assert result["results"] == []
-        assert result["total"] == 0
+        assert result["count"] == 0
         assert result["query"] == ""
     
     def test_search_with_valid_query(self, search_service, mock_repository):
@@ -59,7 +59,7 @@ class TestSearchService:
         assert len(result["results"]) == 1
         assert result["results"][0]["track_id"] == 1
         assert result["query"] == "test"
-        assert result["total"] == 1
+        assert result["count"] == 1
     
     def test_search_mode_fts(self, search_service, mock_repository):
         """Test search with FTS mode."""
