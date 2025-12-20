@@ -1,14 +1,18 @@
 import React, { createContext, useContext, useMemo, useRef, useState, useEffect } from 'react';
+import { playHistoryService } from '../services/playHistoryService';
+import { useAuth } from './AuthContext';
 
 const PlayerContext = createContext(null);
 
 export function PlayerProvider({ children }) {
+  const { token } = useAuth();
   const audioRef = useRef(null);
   const [queue, setQueue] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(0.9);
+  const playTrackedRef = useRef(new Set()); // Track which songs have been logged
 
   const current = currentIndex >= 0 ? queue[currentIndex] : null;
 
@@ -54,6 +58,32 @@ export function PlayerProvider({ children }) {
       audioRef.current.pause();
     }
   }, [isPlaying, currentIndex]);
+
+  // Track play after 10 seconds
+  useEffect(() => {
+    if (!current || !isPlaying || !token) return;
+    
+    const trackKey = `${current.id || current.track_id}_${currentIndex}`;
+    if (playTrackedRef.current.has(trackKey)) return;
+    
+    const timeout = setTimeout(() => {
+      if (audioRef.current && audioRef.current.currentTime >= 10) {
+        playHistoryService.trackPlay(token, current.id || current.track_id);
+        playTrackedRef.current.add(trackKey);
+        console.log('Tracked play for:', current.title);
+      }
+    }, 10000); // 10 seconds
+    
+    return () => clearTimeout(timeout);
+  }, [current, isPlaying, currentIndex, token]);
+
+  // Reset tracking when track changes
+  useEffect(() => {
+    // Clean up old tracking data (keep last 20 tracks)
+    if (playTrackedRef.current.size > 20) {
+      playTrackedRef.current.clear();
+    }
+  }, [currentIndex]);
 
   const playTrack = (track, options = { replace: false }) => {
     setQueue(prev => {
