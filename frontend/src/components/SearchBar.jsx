@@ -141,7 +141,7 @@ function SearchBar() {
         />
         {query && (
           <button 
-          lassName="clear-search-btn" 
+          className="clear-search-btn" 
           onClick={handleClearSearch}
           type="button"
           aria-label="Clear search"
