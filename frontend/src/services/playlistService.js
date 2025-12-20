@@ -40,4 +40,16 @@ export const playlistService = {
     if (!res.ok) throw new Error(data.error || 'Failed to add track');
     return data;
   },
+
+  async removeTrack(token, id, trackId) {
+    const res = await fetch(`${API}/${id}/tracks/${trackId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || 'Failed to remove track');
+    }
+    return true;
+  },
 };

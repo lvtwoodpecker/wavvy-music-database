@@ -25,6 +25,14 @@ function Home() {
   const goNowPlaying = () => navigate('/now-playing');
   const goPlaylists = () => navigate('/playlists');
 
+  const handleAlbumClick = (e, album) => {
+    if (e.target.closest('.album-play-btn')) {
+      playTracks(album.tracks);
+    } else {
+      navigate(`/album/${encodeURIComponent(album.album)}`, { state: { album } });
+    }
+  };
+
   useEffect(() => {
     (async () => {
       const albums = await musicService.getLibrary(token);
@@ -86,11 +94,12 @@ function Home() {
         </div>
         <div className="recent-grid">
           {recentAlbums.map((alb) => (
-            <div key={alb.album} className="recent-card" onClick={() => playTracks(alb.tracks)}>
+            <div key={alb.album} className="recent-card" onClick={(e) => handleAlbumClick(e, alb)}>
               <img src={alb.cover_url} alt={alb.album} />
               <div className="recent-meta">
                 <div className="title">{alb.album}</div>
                 <div className="artist">{alb.artist}</div>
+                <button className="album-play-btn" onClick={(e) => { e.stopPropagation(); playTracks(alb.tracks); }}>▶ Play</button>
               </div>
             </div>
           ))}
@@ -103,8 +112,6 @@ function Home() {
           <p>Stripe test cards only — no real money happens here.</p>
           <div className="cta-actions">
             <PayButton />
-            <button className="ghost" onClick={goNowPlaying}>Now Playing</button>
-            <button className="ghost" onClick={goPlaylists}>My Playlists</button>
           </div>
         </div>
         <div className="user-actions">

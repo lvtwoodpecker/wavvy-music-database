@@ -123,6 +123,8 @@
 .recent-meta { padding: 10px; }
 .recent-meta .title { font-weight: 700; }
 .recent-meta .artist { color: var(--muted); font-size: 13px; }
+.album-play-btn { background: #fff; color: #000; border: none; border-radius: 4px; padding: 6px 12px; font-size: 0.85rem; font-weight: 600; cursor: pointer; margin-top: 8px; width: 100%; transition: background 0.2s; }
+.album-play-btn:hover { background: #e0e0e0; }
 
 .cta {
   margin-top: 24px;
@@ -149,7 +151,7 @@
   font-weight: 600;
 }
 .settings-button { background: #1f2533; color: var(--text); }
-.logout-button { background: #ef4444; color:#fff; }
+.logout-button { background: #fff; color: #000; }
 
 @media (max-width: 900px) {
   .home-topbar { grid-template-columns: 1fr; justify-items:flex-start; }

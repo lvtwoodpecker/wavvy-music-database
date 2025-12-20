@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { usePlayer } from '../context/PlayerContext';
 import { playlistService } from '../services/playlistService';
@@ -7,8 +7,9 @@ import '../styles/Playlist.css';
 
 export default function PlaylistPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { token } = useAuth();
-  const { playTrack } = usePlayer();
+  const { playTrack, playTracks, current } = usePlayer();
   const [playlist, setPlaylist] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,15 +28,9 @@ export default function PlaylistPage() {
 
   useEffect(() => { load(); }, [id]);
 
-  const onAddDemo = async () => {
+  const handleRemoveTrack = async (trackId) => {
     try {
-      await playlistService.addTrack(token, id, {
-        title: 'Wavvy Waves',
-        artist: 'Wavvy',
-        audio_url: 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_e32846d7d8.mp3?filename=chill-ambient-110387.mp3',
-        cover_url: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=256&auto=format&fit=crop',
-        duration_ms: 120000,
-      });
+      await playlistService.removeTrack(token, id, trackId);
       await load();
     } catch (e) {
       setError(e.message);
@@ -48,23 +43,33 @@ export default function PlaylistPage() {
 
   return (
     <main className="pl-main">
+      <button className="back-btn" onClick={() => navigate(-1)}>← Back</button>
       <div className="pl-header">
         <div className="pl-cover">🎵</div>
         <div>
           <h1>{playlist.name}</h1>
           {playlist.description && <p>{playlist.description}</p>}
-          <button onClick={onAddDemo}>Add Demo Track</button>
+          <p className="pl-count">{playlist.tracks?.length || 0} tracks</p>
+          {playlist.tracks && playlist.tracks.length > 0 && (
+            <button className="pl-play-all" onClick={() => playTracks(playlist.tracks)}>▶ Play All</button>
+          )}
         </div>
       </div>
       <div className="pl-tracks">
         {playlist.tracks?.length ? (
-          playlist.tracks.map((t) => (
-            <div key={t.id} className="pl-track" onClick={() => playTrack(t)}>
-              <span className="idx">{t.position + 1}</span>
-              <span className="title">{t.title}</span>
-              <span className="artist">{t.artist}</span>
-            </div>
-          ))
+          playlist.tracks.map((t, idx) => {
+            const isCurrentTrack = current?.id === t.id;
+            return (
+              <div key={t.id} className={`pl-track ${isCurrentTrack ? 'active' : ''}`} onDoubleClick={() => playTrack(t)}>
+                <span className="idx">{(idx + 1).toString().padStart(2, '0')}</span>
+                <div className="track-info">
+                  <span className="title">{t.title}</span>
+                  <span className="artist">{t.artist || 'Unknown'}</span>
+                </div>
+                <button className="remove-btn" onClick={(e) => { e.stopPropagation(); handleRemoveTrack(t.id); }} title="Remove from playlist">✕</button>
+              </div>
+            );
+          })
         ) : (
           <p>No tracks yet.</p>
         )}
