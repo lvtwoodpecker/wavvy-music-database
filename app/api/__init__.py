@@ -4,6 +4,7 @@ from app.api.auth_routes import AuthRoutes
 from app.api.playlist_routes import PlaylistRoutes
 from app.api.library_routes import LibraryRoutes
 from app.api.recommender_routes import recommender_bp
+from app.api.play_history_routes import PlayHistoryRoutes
 
 class WavvyAPIBlueprints():
     @staticmethod
@@ -14,6 +15,7 @@ class WavvyAPIBlueprints():
             'auth': AuthRoutes(app),
             'playlist': PlaylistRoutes(app),
             'library': LibraryRoutes(app),
+            'play-history': PlayHistoryRoutes(app),
         }
         
         for route_name, route_class in registers_routes.items():
