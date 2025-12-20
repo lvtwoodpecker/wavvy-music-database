@@ -7,6 +7,7 @@ from app.services.stripe.stripe_service import StripeService
 from app.services.user.create_user_account import UserCreationService
 from app.services.user.account_status import UserStatusService
 from app.services.user.find_user import FindUserService
+from app.services.user.password_reset import PasswordResetService
 
 from sqlalchemy.orm import Session
 
@@ -29,6 +30,7 @@ class UserService(service.Service):
         self._find_user_service = self._create_find_user_service()
         self._user_status_service = self._create_user_status_service()
         self._user_creation_service = self._create_user_service()
+        self._password_reset_service = self._create_password_reset_service()
 
     # --- Properties ---
     @property
@@ -52,6 +54,12 @@ class UserService(service.Service):
         if self._user_status_service is None:
             self._user_status_service = self._create_user_status_service()
         return self._user_status_service
+
+    @property
+    def password_reset_service(self) -> PasswordResetService:
+        if self._password_reset_service is None:
+            self._password_reset_service = self._create_password_reset_service()
+        return self._password_reset_service
 
     # --- Factory Methods for Sub-services ---
 
@@ -87,5 +95,14 @@ class UserService(service.Service):
         Injects db_session_factory so it can query users with ORM.
         """
         return FindUserService(
+            db_session_factory=self._db_session_factory,
+        )
+
+    def _create_password_reset_service(self) -> PasswordResetService:
+        """
+        Creates and returns a PasswordResetService instance.
+        Injects db_session_factory for ORM.
+        """
+        return PasswordResetService(
             db_session_factory=self._db_session_factory,
         )

@@ -71,6 +71,9 @@ function Login() {
         <p className="auth-footer">
           Don't have an account? <Link to="/signup">Sign up</Link>
         </p>
+        <p className="auth-footer">
+          Forgot your password? <Link to="/forgot-password">Reset it</Link>
+        </p>
       </div>
     </div>
   );

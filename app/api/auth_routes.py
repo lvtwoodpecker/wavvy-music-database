@@ -9,6 +9,7 @@ from app.utils.auth import (
 )
 from app.services.user.user_service import UserService
 import app.api.base_routes as base_routes
+from datetime import datetime
 
 class AuthRoutes(base_routes.BaseRoutes):
     
@@ -144,6 +145,68 @@ class AuthRoutes(base_routes.BaseRoutes):
             except Exception as e:
                 print("[Auth] Error logging in:", e)
                 return jsonify({"error": "Failed to login"}), 500
+
+        @auth_bp.post("/change-password")
+        @login_required
+        def change_password():
+            """
+            POST /api/auth/change-password
+            Headers: Authorization: Bearer <token>
+            Body: { "old_password": "...", "new_password": "..." }
+            """
+            data = request.get_json() or {}
+            old_password = data.get("old_password", "")
+            new_password = data.get("new_password", "")
+            if not old_password or not new_password:
+                return jsonify({"error": "old_password and new_password are required"}), 400
+            user_id = request.current_user["user_id"]
+            ok = user_service.password_reset_service.change_password(
+                user_id=user_id,
+                old_password=old_password,
+                new_password_hash=hash_password(new_password),
+                verify_fn=verify_password
+            )
+            if not ok:
+                return jsonify({"error": "Invalid old password or user not found"}), 400
+            return jsonify({"message": "Password updated"}), 200
+
+        @auth_bp.post("/request-password-reset")
+        def request_password_reset():
+            """
+            POST /api/auth/request-password-reset
+            Body: { "email": "user@example.com" }
+            Returns message and, in development, the token for convenience.
+            """
+            data = request.get_json() or {}
+            email = data.get("email", "").strip()
+            if not email:
+                return jsonify({"error": "email is required"}), 400
+            token = user_service.password_reset_service.request_reset(email)
+            # Avoid user enumeration; always success message
+            if token:
+                print(f"[PasswordReset] token for {email}: {token}")
+                return jsonify({"message": "Reset initiated", "token": token}), 200
+            else:
+                return jsonify({"message": "If the email exists, a reset was initiated"}), 200
+
+        @auth_bp.post("/reset-password")
+        def reset_password():
+            """
+            POST /api/auth/reset-password
+            Body: { "token": "...", "new_password": "..." }
+            """
+            data = request.get_json() or {}
+            token = data.get("token", "")
+            new_password = data.get("new_password", "")
+            if not token or not new_password:
+                return jsonify({"error": "token and new_password are required"}), 400
+            ok = user_service.password_reset_service.reset_with_token(
+                token=token,
+                new_password_hash=hash_password(new_password)
+            )
+            if not ok:
+                return jsonify({"error": "Invalid or expired token"}), 400
+            return jsonify({"message": "Password has been reset"}), 200
             
         @auth_bp.route("/signup-advertiser", methods=["POST"])
         @login_required

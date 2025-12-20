@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { stripeService } from '../services/stripeService';
+import { authService } from '../services/authService';
 import '../styles/Settings.css';
 
 function Settings() {
@@ -17,6 +18,9 @@ function Settings() {
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [changingPwd, setChangingPwd] = useState(false);
 
   useEffect(() => {
     fetchStripeStatus();
@@ -65,6 +69,23 @@ function Settings() {
     navigate('/app');
   };
 
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setSuccessMessage(null);
+    try {
+      setChangingPwd(true);
+      const res = await authService.changePassword(token, oldPassword, newPassword);
+      setSuccessMessage(res.message || 'Password updated');
+      setOldPassword('');
+      setNewPassword('');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setChangingPwd(false);
+    }
+  };
+
   return (
     <main className="settings-main">
       <div className="settings-container">
@@ -102,6 +123,35 @@ function Settings() {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="settings-section">
+          <h2>Security</h2>
+          <form className="password-form" onSubmit={handleChangePassword}>
+            <div className="form-row">
+              <label htmlFor="oldPassword">Current Password</label>
+              <input
+                id="oldPassword"
+                type="password"
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+                placeholder="Enter current password"
+              />
+            </div>
+            <div className="form-row">
+              <label htmlFor="newPassword">New Password</label>
+              <input
+                id="newPassword"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter new password"
+              />
+            </div>
+            <button type="submit" className="change-password-button" disabled={changingPwd}>
+              {changingPwd ? 'Updating...' : 'Change Password'}
+            </button>
+          </form>
         </div>
 
         <div className="settings-section">
