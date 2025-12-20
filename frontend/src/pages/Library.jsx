@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { usePlayer } from '../context/PlayerContext';
 import { musicService } from '../services/musicService';
@@ -7,6 +8,7 @@ import '../styles/Library.css';
 export default function Library() {
   const { token } = useAuth();
   const { playTracks } = usePlayer();
+  const navigate = useNavigate();
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -19,6 +21,14 @@ export default function Library() {
     })();
   }, [token]);
 
+  const handleCardClick = (e, album) => {
+    if (e.target.closest('.lib-play-btn')) {
+      playTracks(album.tracks);
+    } else {
+      navigate(`/album/${encodeURIComponent(album.album)}`, { state: { album } });
+    }
+  };
+
   if (loading) return <main className="lib-main"><p>Loading your Wavvy Library…</p></main>;
 
   return (
@@ -26,7 +36,7 @@ export default function Library() {
       <h1>Library</h1>
       <div className="lib-grid">
         {albums.map((album) => (
-          <div key={album.album} className="lib-card" onClick={() => playTracks(album.tracks)}>
+          <div key={album.album} className="lib-card" onClick={(e) => handleCardClick(e, album)}>
             {album.cover_url ? (
               <img src={album.cover_url} alt={album.album} />
             ) : (
@@ -36,6 +46,7 @@ export default function Library() {
               <div className="title">{album.album}</div>
               <div className="artist">{album.artist}</div>
               <div className="count">{album.tracks.length} tracks</div>
+              <button className="lib-play-btn" onClick={(e) => { e.stopPropagation(); playTracks(album.tracks); }}>▶ Play</button>
             </div>
           </div>
         ))}
