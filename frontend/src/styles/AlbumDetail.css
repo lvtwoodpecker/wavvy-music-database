@@ -1,6 +1,6 @@
 /* Album Detail Page */
 .album-detail {
-  padding: 96px 2rem 120px;
+  padding: var(--page-padding-top, 96px) 2rem 120px;
   max-width: 900px;
   margin: 0 auto;
 }
