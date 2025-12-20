@@ -36,4 +36,4 @@ ODS --> OUT["Ranked Results JSON"]
 OUT --> U
 """
 
-mm_to_img(flowchart_code, filename="images/otm_ods_orm.svg") 
+mm_to_img(flowchart_code, filename="images/otm_ods_orm.png", fmt="png") 
