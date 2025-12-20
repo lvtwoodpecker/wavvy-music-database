@@ -3,12 +3,15 @@ SearchRepository provides data access methods for the ods_track_search table.
 Handles all database queries for search operations using SQLAlchemy ORM.
 """
 
+import logging
 from typing import List, Optional, Dict, Any, Callable
 from sqlalchemy import func, or_, text
 from sqlalchemy.orm import Session
 from app.models.ODSTrackSearch import ODSTrackSearch
 
 SessionFactory = Callable[[], Session]
+
+logger = logging.getLogger(__name__)
 
 
 class SearchRepository:
@@ -187,9 +190,10 @@ class SearchRepository:
             with self.db_session_factory() as session:
                 session.execute(text("SELECT refresh_ods_track_search()"))
                 session.commit()
+                logger.info("Search index refreshed successfully")
                 return True
         except Exception as e:
-            print(f"Error refreshing search index: {e}")
+            logger.error(f"Error refreshing search index: {e}", exc_info=True)
             return False
     
     def get_total_tracks(self) -> int:

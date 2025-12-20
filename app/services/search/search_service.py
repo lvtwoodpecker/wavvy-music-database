@@ -58,7 +58,7 @@ class SearchService(Service):
             Dictionary containing:
                 - results: List of track dictionaries
                 - query: Original query string
-                - total: Number of results found
+                - count: Number of results returned in this response
                 - limit: Applied limit
                 - offset: Applied offset
         """
@@ -68,7 +68,7 @@ class SearchService(Service):
             return {
                 "results": [],
                 "query": "",
-                "total": 0,
+                "count": 0,
                 "limit": limit,
                 "offset": offset
             }
@@ -91,7 +91,7 @@ class SearchService(Service):
         return {
             "results": tracks,
             "query": query,
-            "total": len(tracks),
+            "count": len(tracks),  # Number of results returned in this response
             "limit": limit,
             "offset": offset
         }
