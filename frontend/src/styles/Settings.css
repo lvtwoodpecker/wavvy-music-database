@@ -2,20 +2,22 @@
 
 .settings-main {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg);
   padding: 2rem;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  overflow: scroll;
+  overflow: auto;
 }
 
 .settings-container {
   width: 100%;
   max-width: 900px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  background: var(--panel);
+  color: var(--text);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  border: 1px solid #1b1f2a;
   padding: 2rem;
 }
 
@@ -25,12 +27,12 @@
   align-items: center;
   margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 2px solid #f0f0f0;
+  border-bottom: 1px solid #2a2f3b;
 }
 
 .settings-header h1 {
   margin: 0;
-  color: #333;
+  color: var(--text);
   font-size: 2rem;
 }
 
@@ -42,25 +44,28 @@
 .back-button,
 .logout-button {
   padding: 0.6rem 1.2rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
+  border: 1px solid #2a2f3b;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .back-button {
-  background: #f0f0f0;
-  color: #333;
+  background: transparent;
 }
 
 .back-button:hover {
-  background: #e0e0e0;
+  background: #1a1f2a;
+  border-color: #3a4152;
 }
 
 .logout-button {
   background: #dc3545;
-  color: white;
+  color: #fff;
+  border: none;
 }
 
 .logout-button:hover {
@@ -72,15 +77,16 @@
 }
 
 .settings-section h2 {
-  color: #333;
+  color: var(--text);
   margin-bottom: 1rem;
   font-size: 1.5rem;
 }
 
 .user-info-section {
-  background: #f8f9fa;
+  background: #0f131a;
   padding: 1.5rem;
-  border-radius: 8px;
+  border-radius: 10px;
+  border: 1px solid #1b1f2a;
 }
 
 .info-grid {
@@ -97,19 +103,20 @@
 
 .info-label {
   font-size: 0.875rem;
-  color: #666;
+  color: var(--muted);
   font-weight: 500;
 }
 
 .info-value {
   font-size: 1rem;
-  color: #333;
+  color: var(--text);
 }
 
 .stripe-section {
-  background: #f8f9fa;
+  background: #0f131a;
   padding: 1.5rem;
-  border-radius: 8px;
+  border-radius: 10px;
+  border: 1px solid #1b1f2a;
 }
 
 .stripe-status {
@@ -130,18 +137,18 @@
 }
 
 .status-dot.connected {
-  background: #28a745;
-  box-shadow: 0 0 8px rgba(40, 167, 69, 0.5);
+  background: #bfc6d4;
+  box-shadow: none;
 }
 
 .status-dot.disconnected {
-  background: #dc3545;
+  background: #6b7280;
 }
 
 .status-text {
   font-size: 1.125rem;
   font-weight: 500;
-  color: #333;
+  color: var(--text);
 }
 
 .stripe-details {
@@ -150,12 +157,12 @@
 
 .stripe-info {
   margin: 0.5rem 0;
-  color: #555;
+  color: var(--muted);
   font-size: 0.95rem;
 }
 
 .stripe-info strong {
-  color: #333;
+  color: var(--text);
 }
 
 .stripe-actions {
@@ -163,63 +170,51 @@
 }
 
 .connect-stripe-button {
-  background: #635bff;
-  color: white;
+  background: var(--text);
+  color: var(--bg);
   padding: 0.875rem 1.75rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 10px;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
 .connect-stripe-button:hover:not(:disabled) {
-  background: #4f46e5;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(99, 91, 255, 0.3);
+  opacity: 0.92;
 }
 
 .connect-stripe-button:disabled {
-  background: #ccc;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .stripe-description {
   margin-top: 1rem;
-  color: #666;
+  color: var(--muted);
   font-size: 0.9rem;
   line-height: 1.5;
 }
 
 .stripe-connected-message {
-  color: #28a745;
+  color: var(--muted);
   font-weight: 500;
   margin: 0;
 }
 
-.error-message {
-  background: #f8d7da;
-  color: #721c24;
-  padding: 1rem;
-  border-radius: 6px;
-  margin: 1rem 0;
-  border-left: 4px solid #dc3545;
-}
-
-.error-message p {
-  margin: 0;
-}
-
+.error-message,
 .success-message {
-  background: #d4edda;
-  color: #155724;
+  background: #0f131a;
+  color: var(--text);
   padding: 1rem;
-  border-radius: 6px;
+  border-radius: 10px;
   margin: 1rem 0;
-  border-left: 4px solid #28a745;
+  border: 1px solid #1b1f2a;
 }
 
+.error-message p,
 .success-message p {
   margin: 0;
 }
@@ -227,14 +222,15 @@
 .loading-state {
   text-align: center;
   padding: 2rem;
-  color: #666;
+  color: var(--muted);
 }
 
 /* Password change form */
 .password-form {
-  background: #f8f9fa;
+  background: #0f131a;
   padding: 1.5rem;
-  border-radius: 8px;
+  border-radius: 10px;
+  border: 1px solid #1b1f2a;
 }
 
 .form-row {
@@ -246,27 +242,141 @@
 
 .form-row label {
   font-size: 0.9rem;
-  color: #555;
+  color: var(--muted);
 }
 
 .form-row input {
   padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background: #fff;
+  border: 1px solid #2a2f3b;
+  border-radius: 10px;
+  background: #0b0e14;
+  color: var(--text);
+}
+.form-row input::placeholder {
+  color: var(--muted);
+}
+.form-row input:focus {
+  outline: none;
+  border-color: #bfc6d4;
 }
 
 .change-password-button {
-  background: #333;
-  color: #fff;
+  background: var(--text);
+  color: var(--bg);
   padding: 0.75rem 1.25rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 10px;
   cursor: pointer;
+  font-weight: 600;
 }
 
 .change-password-button:hover {
-  background: #111;
+  opacity: 0.92;
+}
+
+/* Subscription card */
+.subscription-card {
+  background: #0f131a;
+  padding: 1.5rem;
+  border-radius: 10px;
+  border: 1px solid #1b1f2a;
+  margin-bottom: 1.5rem;
+}
+.subscription-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.subscription-header .label {
+  color: var(--muted);
+  margin: 0;
+}
+.subscription-header .status-text {
+  color: var(--text);
+  font-weight: 600;
+}
+.subscription-body p {
+  margin: 0.35rem 0;
+  color: var(--muted);
+}
+.subscription-body p strong {
+  color: var(--text);
+}
+
+/* Accent style for cancel subscription button */
+.subscription-card .secondary {
+  background: #dc3545;
+  color: #fff;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.subscription-card .secondary:hover:not(:disabled) {
+  background: #c82333;
+  transform: translateY(-1px);
+  opacity: 0.95;
+}
+.subscription-card .secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Cancel confirmation panel */
+.confirm-panel {
+  margin-top: 1rem;
+  background: #0f131a;
+  border: 1px solid #1b1f2a;
+  border-radius: 10px;
+  padding: 1rem;
+}
+.confirm-title {
+  color: var(--text);
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+}
+.confirm-body {
+  color: var(--muted);
+  margin: 0 0 0.75rem 0;
+}
+.confirm-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+.confirm-cancel {
+  background: #dc3545;
+  color: #fff;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.confirm-cancel:hover {
+  background: #c82333;
+}
+.confirm-dismiss {
+  background: transparent;
+  color: var(--text);
+  padding: 0.6rem 1rem;
+  border: 1px solid #2a2f3b;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.confirm-dismiss:hover {
+  background: #1a1f2a;
+  border-color: #3a4152;
+}
+
+.resubscribe-row {
+  margin-top: 1rem;
+}
+.resubscribe-text {
+  color: var(--muted);
+  margin-bottom: 0.5rem;
 }
 
 @media (max-width: 768px) {

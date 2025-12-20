@@ -5,10 +5,11 @@ import { useAuth } from '../context/AuthContext';
 import { stripeService } from '../services/stripeService';
 import { subscriptionService } from '../services/subscriptionService';
 import { authService } from '../services/authService';
+import PayButton from '../components/PayButton.jsx';
 import '../styles/Settings.css';
 
 function Settings() {
-  const { user, token, logout, isPremium, cancelPremium, setPremiumExpiry } = useAuth();
+  const { user, token, logout, isPremium, markPremium, cancelPremium, setPremiumExpiry } = useAuth();
   const navigate = useNavigate();
   const [stripeStatus, setStripeStatus] = useState({
     connected: false,
@@ -18,6 +19,8 @@ function Settings() {
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(false);
+  const [canceling, setCanceling] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [oldPassword, setOldPassword] = useState('');
@@ -29,14 +32,19 @@ function Settings() {
     fetchSubscriptionStatus();
   }, []);
 
+  // Re-fetch subscription when auth/premium changes (e.g., after payment success)
+  useEffect(() => {
+    if (token) fetchSubscriptionStatus();
+  }, [token, isPremium]);
+
   const fetchSubscriptionStatus = async () => {
     if (!token) return;
     try {
       const sub = await subscriptionService.getStatus(token);
       setSubscription(sub);
       if (sub?.status === 'active') {
-        cancelPremium(false); // do not clear local if active
-        setPremiumExpiry(sub.expires_at);
+        markPremium(sub.plan_name || 'Premium');
+        if (sub?.expires_at) setPremiumExpiry(sub.expires_at);
       }
     } catch (err) {
       console.error('Error fetching subscription status:', err);
@@ -102,6 +110,32 @@ function Settings() {
       setChangingPwd(false);
     }
   };
+
+  const handleCancelSubscription = async () => {
+    try {
+      setCanceling(true);
+      setError(null);
+      await subscriptionService.cancel(token);
+      cancelPremium();
+      await fetchSubscriptionStatus();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setCanceling(false);
+      setShowCancelConfirm(false);
+    }
+  };
+
+  const subscriptionActive = subscription?.status === 'active';
+  const localExpiry = (typeof window !== 'undefined') ? localStorage.getItem('premium_expires_at') : null;
+  const expiresAtDate = subscription?.expires_at
+    ? new Date(subscription.expires_at)
+    : (localExpiry ? new Date(localExpiry) : null);
+  const expiresDisplay = expiresAtDate ? expiresAtDate.toLocaleDateString() : null;
+  const now = new Date();
+  const hasSub = !!subscription;
+  const isActiveDisplay = hasSub ? (subscription?.status === 'active') : (isPremium || (expiresAtDate && expiresAtDate > now));
+  const displayPlan = subscription?.plan_name || user?.subscription_plan || (isPremium ? 'Premium' : 'N/A');
 
   return (
     <main className="settings-main">
@@ -177,6 +211,51 @@ function Settings() {
 
         <div className="settings-section">
           <h2>Payments</h2>
+
+          <div className="subscription-card">
+            <div className="subscription-header">
+              <div>
+                <p className="label">Subscription</p>
+                <p className="status-text">{isActiveDisplay ? 'Active' : 'Inactive'}</p>
+              </div>
+              {isActiveDisplay && (
+                <button
+                  className="secondary"
+                  onClick={() => setShowCancelConfirm(true)}
+                  disabled={canceling}
+                >
+                  Cancel Subscription
+                </button>
+              )}
+            </div>
+            <div className="subscription-body">
+              <p><strong>Plan:</strong> {displayPlan}</p>
+              <p><strong>Renews/Ends:</strong> {expiresDisplay || 'Unknown'}</p>
+              {subscription?.canceled_at && (
+                <p><strong>Cancelled on:</strong> {new Date(subscription.canceled_at).toLocaleDateString()}</p>
+              )}
+              {!isActiveDisplay && (
+                <div className="resubscribe-row">
+                  <p className="resubscribe-text">Want to come back? Enjoy Premium features again.</p>
+                  <PayButton />
+                </div>
+              )}
+            </div>
+            {showCancelConfirm && (
+              <div className="confirm-panel">
+                <p className="confirm-title">Confirm cancellation</p>
+                <p className="confirm-body">You will lose Premium features immediately. Are you sure?</p>
+                <div className="confirm-actions">
+                  <button className="confirm-cancel" onClick={handleCancelSubscription} disabled={canceling}>
+                    {canceling ? 'Cancelling…' : 'Confirm Cancel'}
+                  </button>
+                  <button className="confirm-dismiss" onClick={() => setShowCancelConfirm(false)} disabled={canceling}>
+                    Keep Subscription
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
           
           {loading ? (
             <div className="loading-state">
@@ -236,27 +315,6 @@ function Settings() {
                   <p className="stripe-connected-message">
                     Your Stripe account is connected and ready for payments.
                   </p>
-                  <div className="stripe-simulate-row">
-                    <button className="secondary" onClick={async () => {
-                      try {
-                        await subscriptionService.cancel(token);
-                        cancelPremium();
-                        await fetchSubscriptionStatus();
-                      } catch (err) {
-                        setError(err.message);
-                      }
-                    }}>
-                      Cancel Subscription
-                    </button>
-                    <button className="secondary" onClick={async () => {
-                      // Mock: set expiry in 30 days locally
-                      const expires = new Date();
-                      expires.setDate(expires.getDate() + 30);
-                      setPremiumExpiry(expires.toISOString());
-                    }}>
-                      Set 30d Expiry (Local)
-                    </button>
-                  </div>
                 </div>
               )}
             </div>

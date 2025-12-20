@@ -4,6 +4,7 @@ from app.models.StripeAccount import StripeAccount
 from app.models.User import User
 from app.models.Playlist import Playlist
 from app.models.PlaylistTrack import PlaylistTrack
+from app.models.SubscriptionHistory import SubscriptionHistory
 
 __all__ = [
 	"Advertiser",
@@ -12,4 +13,5 @@ __all__ = [
 	"User",
 	"Playlist",
 	"PlaylistTrack",
+	"SubscriptionHistory",
 ]

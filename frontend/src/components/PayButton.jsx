@@ -52,7 +52,7 @@ function PayButton() {
         disabled={loading}
       >
         {/* If loading, show redirecting text */}
-        {loading ? 'Redirecting to Stripe…' : 'Pay with Stripe (Test Mode)'}
+        {loading ? 'Redirecting to Stripe…' : 'Get Premium!'}
       </button>
       {error && <p className="pay-button-error">{error}</p>}
     </>

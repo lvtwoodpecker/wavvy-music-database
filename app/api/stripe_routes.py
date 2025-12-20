@@ -143,6 +143,125 @@ class StripeRoutes(base_routes.BaseRoutes):
                 print(f"Error getting Stripe status: {e}")
                 return jsonify({"error": "Failed to get Stripe status"}), 500
 
+        @bp.route('/subscription/activate', methods=['POST'])
+        @login_required
+        def activate_subscription():
+            """Create a subscription history entry for the user and return status."""
+            from datetime import datetime, timedelta
+            from app.models.SubscriptionHistory import SubscriptionHistory
+            from app.db.sqlalchemy_engine import SessionLocal
+
+            try:
+                data = request.json or {}
+                user_id = request.current_user["user_id"]
+                plan_id = data.get("plan_id")
+                plan_name = data.get("plan_name", "Premium Monthly")
+
+                # Monthly plan: expire in 30 days from now
+                started_at = datetime.utcnow()
+                expires_at = started_at + timedelta(days=30)
+
+                db = SessionLocal()
+                # Optional: mark previous active subscriptions as canceled
+                db.query(SubscriptionHistory).filter(
+                    SubscriptionHistory.user_id == user_id,
+                    SubscriptionHistory.status == "active"
+                ).update({"status": "canceled", "canceled_at": started_at})
+
+                sub = SubscriptionHistory(
+                    user_id=user_id,
+                    plan_id=plan_id,
+                    plan_name=plan_name,
+                    status="active",
+                    started_at=started_at,
+                    expires_at=expires_at,
+                )
+                db.add(sub)
+                db.commit()
+                db.refresh(sub)
+                return jsonify({"subscription": sub.to_dict()}), 200
+            except Exception as e:
+                print(f"Error activating subscription: {e}")
+                return jsonify({"error": "Failed to activate subscription"}), 500
+            finally:
+                try:
+                    db.close()
+                except Exception:
+                    pass
+
+        @bp.route('/subscription/cancel', methods=['POST'])
+        @login_required
+        def cancel_subscription():
+            from datetime import datetime
+            from app.models.SubscriptionHistory import SubscriptionHistory
+            from app.db.sqlalchemy_engine import SessionLocal
+
+            try:
+                user_id = request.current_user["user_id"]
+                db = SessionLocal()
+                now = datetime.utcnow()
+                active = db.query(SubscriptionHistory).filter(
+                    SubscriptionHistory.user_id == user_id,
+                    SubscriptionHistory.status == "active"
+                ).order_by(SubscriptionHistory.started_at.desc()).first()
+
+                if not active:
+                    return jsonify({"error": "No active subscription"}), 404
+
+                active.status = "canceled"
+                active.canceled_at = now
+                db.commit()
+                db.refresh(active)
+                return jsonify({"subscription": active.to_dict()}), 200
+            except Exception as e:
+                print(f"Error canceling subscription: {e}")
+                return jsonify({"error": "Failed to cancel subscription"}), 500
+            finally:
+                try:
+                    db.close()
+                except Exception:
+                    pass
+
+        @bp.route('/subscription/status', methods=['GET'])
+        @login_required
+        def subscription_status():
+            from datetime import datetime
+            from app.models.SubscriptionHistory import SubscriptionHistory
+            from app.db.sqlalchemy_engine import SessionLocal
+
+            try:
+                user_id = request.current_user["user_id"]
+                db = SessionLocal()
+                # Prefer the most recent ACTIVE subscription; otherwise, fall back to the latest record
+                active_sub = db.query(SubscriptionHistory).filter(
+                    SubscriptionHistory.user_id == user_id,
+                    SubscriptionHistory.status == "active"
+                ).order_by(SubscriptionHistory.started_at.desc()).first()
+
+                sub = active_sub or db.query(SubscriptionHistory).filter(
+                    SubscriptionHistory.user_id == user_id
+                ).order_by(SubscriptionHistory.started_at.desc()).first()
+
+                if not sub:
+                    return jsonify({"subscription": None}), 200
+
+                # If expired, update status
+                now = datetime.utcnow()
+                if sub.status == "active" and sub.expires_at and sub.expires_at < now:
+                    sub.status = "expired"
+                    db.commit()
+                    db.refresh(sub)
+
+                return jsonify({"subscription": sub.to_dict()}), 200
+            except Exception as e:
+                print(f"Error fetching subscription status: {e}")
+                return jsonify({"error": "Failed to fetch subscription status"}), 500
+            finally:
+                try:
+                    db.close()
+                except Exception:
+                    pass
+
         @bp.route('/webhook', methods=['POST'])
         def stripe_webhook():
             """

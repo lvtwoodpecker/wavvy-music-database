@@ -225,6 +225,19 @@ CREATE TABLE public.SubscriptionPlan (
   feature_set jsonb,
   CONSTRAINT SubscriptionPlan_pkey PRIMARY KEY (plan_id)
 );
+CREATE TABLE public.SubscriptionHistory (
+  id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+  user_id bigint NOT NULL,
+  plan_id integer,
+  plan_name character varying,
+  status character varying NOT NULL DEFAULT 'active',
+  started_at timestamp with time zone NOT NULL DEFAULT now(),
+  expires_at timestamp with time zone,
+  canceled_at timestamp with time zone,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT SubscriptionHistory_pkey PRIMARY KEY (id),
+  CONSTRAINT fk_subscription_user FOREIGN KEY (user_id) REFERENCES public.User(user_id)
+);
 CREATE TABLE public.Track (
   track_id bigint NOT NULL DEFAULT nextval('"Track_track_id_seq"'::regclass),
   title character varying NOT NULL,

@@ -6,5 +6,5 @@ instance/
 .vscode/
 .idea/
 .DS_Store
-models/
+/models/
 *.pkl
