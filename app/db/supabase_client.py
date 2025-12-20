@@ -3,6 +3,7 @@ import os
 from app.config import Settings
 
 settings = Settings()
+
 class SupabaseClient:
     """
     Supabase client initialization.
@@ -20,3 +21,6 @@ class SupabaseClient:
 
         print("[Supabase] Missing SUPABASE_URL or SUPABASE_SERVICE_KEY in env")
         return None
+
+# Initialize global supabase instance
+supabase = SupabaseClient.init_supabase()

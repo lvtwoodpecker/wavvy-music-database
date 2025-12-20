@@ -52,4 +52,16 @@ export const playlistService = {
     }
     return true;
   },
+
+  async deletePlaylist(token, id) {
+    const res = await fetch(`${API}/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || 'Failed to delete playlist');
+    }
+    return true;
+  },
 };

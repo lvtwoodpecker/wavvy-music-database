@@ -3,6 +3,7 @@ from app.api.stripe_routes import StripeRoutes
 from app.api.auth_routes import AuthRoutes
 from app.api.playlist_routes import PlaylistRoutes
 from app.api.library_routes import LibraryRoutes
+from app.api.recommender_routes import recommender_bp
 
 class WavvyAPIBlueprints():
     @staticmethod
@@ -18,6 +19,9 @@ class WavvyAPIBlueprints():
         for route_name, route_class in registers_routes.items():
             bp = route_class.create_blueprint(app)
             app.register_blueprint(bp, url_prefix=f'/api/{route_name}')
+        
+        # Register direct blueprint for recommender
+        app.register_blueprint(recommender_bp, url_prefix='/api/recommend')
             
     @staticmethod
     def register_all(app) -> None:
