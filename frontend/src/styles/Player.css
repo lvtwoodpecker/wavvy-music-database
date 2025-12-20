@@ -37,3 +37,142 @@
 
 /* main content bottom padding to not hide under player */
 .app-root { padding-bottom: 90px; }
+/* Queue button and modal */
+.player-queue-btn {
+  background: none;
+  border: 1px solid #707070;
+  color: #a0a0a0;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s;
+  margin-left: 8px;
+}
+
+.player-queue-btn:hover {
+  border-color: #fff;
+  color: #fff;
+}
+
+.queue-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  z-index: 2000;
+}
+
+.queue-modal {
+  background: #1a1f2e;
+  border: 1px solid #2a3245;
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+  width: 100%;
+  max-width: 400px;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.7);
+}
+
+.queue-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #2a3245;
+  flex-shrink: 0;
+}
+
+.queue-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text);
+}
+
+.queue-close {
+  background: none;
+  border: none;
+  color: #a0a0a0;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 0;
+}
+
+.queue-close:hover {
+  color: #fff;
+}
+
+.queue-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 8px 0;
+}
+
+.queue-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: #a0a0a0;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+
+.queue-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.queue-item.current {
+  background: rgba(71, 192, 255, 0.1);
+  border-left-color: #47c0ff;
+  color: #47c0ff;
+}
+
+.queue-item-number {
+  min-width: 24px;
+  font-size: 0.85rem;
+  opacity: 0.6;
+}
+
+.queue-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.queue-item-title {
+  font-weight: 500;
+  color: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.queue-item-artist {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.queue-item-now-playing {
+  color: #47c0ff;
+  font-size: 0.8rem;
+}
+
+.queue-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: #707070;
+  margin: 0;
+}

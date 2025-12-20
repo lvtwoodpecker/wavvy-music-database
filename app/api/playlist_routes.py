@@ -77,18 +77,20 @@ class PlaylistRoutes(base_routes.BaseRoutes):
                 
                 # Get tracks with track metadata
                 result = db.execute(text(
-                    'SELECT t.track_id, t.title, COALESCE(a.name, \'Unknown\') as artist, t.audio_file_url, t.duration_ms '
+                    'SELECT t.track_id, t.title, COALESCE(a.name, \'Unknown\') as artist, t.audio_file_url, t.duration_ms, alb.cover_image_url '
                     'FROM "PlaylistTrack" pt '
                     'JOIN "Track" t ON pt.track_id = t.track_id '
                     'LEFT JOIN "TrackArtist" ta ON t.track_id = ta.track_id '
                     'LEFT JOIN "Artist" a ON ta.artist_id = a.artist_id '
+                    'LEFT JOIN "AlbumTrack" att ON t.track_id = att.track_id '
+                    'LEFT JOIN "Album" alb ON att.album_id = alb.album_id '
                     'WHERE pt.playlist_id = :playlist_id '
                     'ORDER BY pt.date_added'
                 ), {"playlist_id": playlist_id})
                 
                 tracks = []
                 for row in result:
-                    track_id, title, artist, audio_url, duration = row
+                    track_id, title, artist, audio_url, duration, cover_url = row
                     tracks.append({
                         "id": track_id,
                         "track_id": track_id,
@@ -96,6 +98,7 @@ class PlaylistRoutes(base_routes.BaseRoutes):
                         "artist": artist or "Unknown artist",
                         "audio_url": audio_url,
                         "duration_ms": duration or 0,
+                        "cover_url": cover_url,
                     })
                 
                 data = {

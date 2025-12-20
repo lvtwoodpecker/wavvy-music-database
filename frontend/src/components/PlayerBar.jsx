@@ -6,11 +6,12 @@ import '../styles/Player.css';
 
 export default function PlayerBar() {
   const { isAuthenticated, token } = useAuth();
-  const { current, queue, isPlaying, toggle, next, prev, progress, seek, volume, setVolume } = usePlayer();
+  const { current, queue, isPlaying, toggle, next, prev, progress, seek, volume, setVolume, currentIndex, setCurrentIndex } = usePlayer();
   const [liked, setLiked] = React.useState(false);
   const [showPlaylistMenu, setShowPlaylistMenu] = React.useState(false);
   const [playlists, setPlaylists] = React.useState([]);
   const [loadingPlaylists, setLoadingPlaylists] = React.useState(false);
+  const [showQueue, setShowQueue] = React.useState(false);
 
   // Hardcode 30 seconds for demo snippets
   const durationSec = 30;
@@ -149,7 +150,48 @@ export default function PlayerBar() {
           value={volume}
           onChange={(e) => setVolume(parseFloat(e.target.value))}
         />
+        <button 
+          className="player-queue-btn" 
+          onClick={() => setShowQueue(!showQueue)}
+          title="Show queue"
+        >
+          ☰
+        </button>
       </div>
+
+      {showQueue && (
+        <div className="queue-modal-overlay" onClick={() => setShowQueue(false)}>
+          <div className="queue-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="queue-header">
+              <h3>Queue</h3>
+              <button className="queue-close" onClick={() => setShowQueue(false)}>✕</button>
+            </div>
+            <div className="queue-list">
+              {queue && queue.length > 0 ? (
+                queue.map((track, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`queue-item ${idx === currentIndex ? 'current' : ''}`}
+                    onClick={() => {
+                      setCurrentIndex(idx);
+                      setShowQueue(false);
+                    }}
+                  >
+                    <div className="queue-item-number">{idx + 1}</div>
+                    <div className="queue-item-info">
+                      <div className="queue-item-title">{track.title}</div>
+                      <div className="queue-item-artist">{track.artist}</div>
+                    </div>
+                    {idx === currentIndex && <div className="queue-item-now-playing">▶</div>}
+                  </div>
+                ))
+              ) : (
+                <p className="queue-empty">Queue is empty</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
