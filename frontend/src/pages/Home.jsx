@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PayButton from '../components/PayButton.jsx';
+import SearchBar from '../components/SearchBar.jsx';
 import { useAuth } from '../context/AuthContext';
 import { usePlayer } from '../context/PlayerContext';
 import { musicService } from '../services/musicService';
@@ -62,6 +63,10 @@ function Home() {
         <span className="listener-mode">Listener Mode</span>
         <h1>Good evening</h1>
         <p>Your personalized music experience</p>
+      </section>
+
+      <section className="search-section">
+        <SearchBar />
       </section>
 
       <section className="nav-links">

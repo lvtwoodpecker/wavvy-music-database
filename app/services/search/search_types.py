@@ -1,6 +1,7 @@
 # app/services/search/search_types.py
 from __future__ import annotations
 from dataclasses import dataclass
+from typing import Optional
 
 @dataclass(frozen=True)
 class TrackSearchHit:
@@ -11,3 +12,4 @@ class TrackSearchHit:
     genre_names: str
     score: float
     source: str
+    audio_file_url: Optional[str] = None
