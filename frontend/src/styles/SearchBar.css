@@ -1,0 +1,254 @@
+/* SearchBar Component Styles */
+
+.search-bar-container {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 24px 0;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #0f131d;
+  border: 1px solid #1f2533;
+  border-radius: 24px;
+  padding: 12px 20px;
+  gap: 12px;
+  transition: border-color 0.2s ease;
+}
+
+.search-input-wrapper:focus-within {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.search-icon {
+  font-size: 18px;
+  color: var(--muted);
+}
+
+.search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: 15px;
+  font-family: inherit;
+}
+
+.search-input::placeholder {
+  color: var(--muted);
+}
+
+.clear-search-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 16px;
+  transition: color 0.2s ease;
+}
+
+.clear-search-btn:hover {
+  color: var(--text);
+}
+
+.search-loader {
+  font-size: 16px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Search Results Dropdown */
+.search-results-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: #0f131d;
+  border: 1px solid #1f2533;
+  border-radius: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.search-error {
+  padding: 20px;
+  text-align: center;
+  color: #ef4444;
+  font-size: 14px;
+}
+
+.no-results {
+  padding: 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.results-list {
+  padding: 8px;
+}
+
+.result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  gap: 12px;
+}
+
+.result-item:hover {
+  background: #141824;
+}
+
+.result-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.result-title {
+  color: var(--text);
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.result-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.result-artist,
+.result-album {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.result-separator {
+  color: var(--muted);
+}
+
+.result-play-btn {
+  background: transparent;
+  border: 1px solid #1f2533;
+  color: var(--text);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.result-play-btn:hover {
+  background: #6366f1;
+  border-color: #6366f1;
+  transform: scale(1.1);
+}
+
+.result-no-audio {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+/* Scrollbar styles */
+.search-results-dropdown::-webkit-scrollbar {
+  width: 8px;
+}
+
+.search-results-dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.search-results-dropdown::-webkit-scrollbar-thumb {
+  background: #1f2533;
+  border-radius: 4px;
+}
+
+.search-results-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #2a3145;
+}
+
+.result-play-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background-color: #1db954;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.result-play-btn:hover:not(:disabled) {
+  background-color: #17a44b;
+}
+
+.result-play-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.play-icon {
+  width: 0;
+  height: 0;
+  border-left: 10px solid #ffffff;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  margin-left: 2px;
+}
+
+.play-icon.disabled {
+  border-left-color: #666666;
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .search-bar-container {
+    max-width: 100%;
+  }
+
+  .search-results-dropdown {
+    max-height: 300px;
+  }
+}
