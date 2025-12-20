@@ -10,6 +10,8 @@ class ODSTrackSearch(Base):
     """
     Denormalized read model for fast search.
     Backfilled/refreshed from OLTP tables (Track, Artist, Album, Genre).
+    
+    Uses both FTS (full-text search) and trigram similarity for flexible matching.
     """
     __tablename__ = "ods_track_search"
     __table_args__ = (
@@ -38,3 +40,20 @@ class ODSTrackSearch(Base):
 
     created_at: Mapped[object] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[object] = mapped_column(DateTime(timezone=True))
+    
+    def __repr__(self):
+        return f"<ODSTrackSearch(track_id={self.track_id}, title='{self.track_title}', artist='{self.artist_names}')>"
+    
+    def to_dict(self):
+        """Convert model instance to dictionary for API responses."""
+        return {
+            "track_id": self.track_id,
+            "title": self.track_title,
+            "artist_names": self.artist_names,
+            "album_title": self.album_titles,
+            "genre_names": self.genre_names,
+            "duration_ms": self.duration_ms,
+            "spotify_id": self.spotify_id,
+            "date_added": self.date_added.isoformat() if self.date_added else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None
+        }
