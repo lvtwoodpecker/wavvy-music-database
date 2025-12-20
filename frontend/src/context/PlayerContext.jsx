@@ -33,9 +33,13 @@ export function PlayerProvider({ children }) {
   // When the current track changes, update the audio source and optionally play
   useEffect(() => {
     if (!audioRef.current) return;
+    console.log('Setting audio source:', current?.title || 'none', current?.audio_url || 'no url');
     audioRef.current.src = current?.audio_url || '';
     if (current && isPlaying) {
-      audioRef.current.play().catch(() => setIsPlaying(false));
+      audioRef.current.play().catch(err => {
+        console.error('Play failed:', err);
+        setIsPlaying(false);
+      });
     } else {
       audioRef.current.pause();
     }
@@ -69,7 +73,11 @@ export function PlayerProvider({ children }) {
   };
 
   const playTracks = (tracks) => {
-    if (!tracks || tracks.length === 0) return;
+    if (!tracks || tracks.length === 0) {
+      console.warn('playTracks called with empty tracks');
+      return;
+    }
+    console.log('Playing tracks:', tracks.map(t => ({ title: t.title, hasAudio: !!t.audio_url })));
     setQueue(tracks);
     setCurrentIndex(0);
     setIsPlaying(true);
@@ -123,8 +131,8 @@ export function PlayerProvider({ children }) {
 
   return (
     <PlayerContext.Provider value={value}>
-      {/* hidden audio element */}
-      <audio ref={audioRef} src={current?.audio_url || ''} preload="metadata" />
+      {/* hidden audio element - src set via useEffect */}
+      <audio ref={audioRef} preload="metadata" crossOrigin="anonymous" />
       {children}
     </PlayerContext.Provider>
   );

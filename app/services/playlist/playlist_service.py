@@ -23,7 +23,7 @@ class PlaylistService:
 
     def create_playlist(self, owner_id: int, name: str, description: Optional[str] = None) -> Playlist:
         with self._session() as db:
-            pl = Playlist(name=name, description=description, owner_id=owner_id)
+            pl = Playlist(name=name, owner_id=owner_id)
             db.add(pl)
             db.commit()
             db.refresh(pl)

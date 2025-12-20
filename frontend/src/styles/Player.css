@@ -24,8 +24,10 @@
 .player-action-btn:hover { border-color: #fff; color: #fff; }
 .player-action-btn.liked { border-color: #ff4757; color: #fff; background: #ff4757; }
 .playlist-menu { position: relative; }
-.playlist-dropdown { position: absolute; bottom: 100%; right: 0; background: #1a1f2e; border: 1px solid #2a3245; border-radius: 8px; padding: 8px; min-width: 150px; z-index: 10; }
+.playlist-dropdown { position: absolute; bottom: 100%; right: 0; background: #1a1f2e; border: 1px solid #2a3245; border-radius: 8px; padding: 8px; min-width: 150px; z-index: 10; max-height: 300px; overflow-y: auto; }
 .playlist-dropdown .placeholder { margin: 0; padding: 8px; color: #707070; font-size: 0.9rem; }
+.playlist-item { background: none; border: none; color: #a0a0a0; width: 100%; text-align: left; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
+.playlist-item:hover { background: #2a3245; color: #fff; }
 .player-controls { display:flex; align-items:center; gap: 10px; flex: 1.5; }
 .player-btn { background:#121620; color: var(--text); border:1px solid #1f2533; padding:8px 10px; border-radius:10px; cursor:pointer; }
 .player-btn.primary { background: #1f2533; color: var(--text); border:1px solid #2a3245; box-shadow: none; }

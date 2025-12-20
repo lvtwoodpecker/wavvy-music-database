@@ -73,6 +73,102 @@
 .hero h1 { margin: 0 0 4px 0; font-size: 36px; }
 .hero p { margin: 0; color: var(--muted); }
 
+.nav-links {
+  display: flex;
+  gap: 24px;
+  margin: 24px 0 32px;
+  flex-wrap: wrap;
+}
+
+.nav-link {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 0;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+  color: #fff;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #fff;
+  transition: width 0.2s ease;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.trending-section {
+  margin: 24px 0 32px;
+}
+
+.trending-banner {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.trending-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.trending-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 32px;
+  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.9) 100%);
+}
+
+.trending-overlay h2 {
+  margin: 0 0 8px 0;
+  font-size: 48px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.trending-overlay p {
+  margin: 0 0 16px 0;
+  color: rgba(255,255,255,0.8);
+  font-size: 16px;
+}
+
+.trending-play-btn {
+  background: #fff;
+  color: #000;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.trending-play-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(255,255,255,0.3);
+}
+
 .stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));

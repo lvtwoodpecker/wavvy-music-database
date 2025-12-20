@@ -63,6 +63,25 @@ function Home() {
         <p>Your personalized music experience</p>
       </section>
 
+      <section className="nav-links">
+        <button className="nav-link" onClick={() => navigate('/liked')}>Liked Songs</button>
+        <button className="nav-link" onClick={goPlaylists}>Playlists</button>
+        <button className="nav-link" onClick={goLibrary}>Library</button>
+      </section>
+
+      <section className="trending-section">
+        <div className="trending-header">
+          <div className="trending-banner">
+            <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200&h=300&fit=crop&auto=format" alt="Now Trending" />
+            <div className="trending-overlay">
+              <h2>Now Trending</h2>
+              <p>Curated for you right now</p>
+              <button className="trending-play-btn" onClick={() => navigate('/playlist/9')}>Open Playlist</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="stats">
         <div className="stat-card pink">
           <div className="stat-icon">⏱</div>
@@ -88,10 +107,6 @@ function Home() {
       </section>
 
       <section className="recent">
-        <div className="section-heading">
-          <h2>Recently Played</h2>
-          <button className="see-all" onClick={goLibrary}>See all</button>
-        </div>
         <div className="recent-grid">
           {recentAlbums.map((alb) => (
             <div key={alb.album} className="recent-card" onClick={(e) => handleAlbumClick(e, alb)}>

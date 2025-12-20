@@ -193,6 +193,50 @@
   background: #ff4757;
 }
 
+.track-playlist-menu {
+  position: relative;
+}
+
+.track-playlist-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: #0f131d;
+  border: 1px solid #2a3245;
+  border-radius: 6px;
+  padding: 6px;
+  min-width: 140px;
+  z-index: 10;
+  max-height: 250px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+
+.track-playlist-dropdown p {
+  margin: 0;
+  padding: 6px;
+  color: #707070;
+  font-size: 0.85rem;
+}
+
+.playlist-option {
+  background: none;
+  border: none;
+  color: #a0a0a0;
+  width: 100%;
+  text-align: left;
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.playlist-option:hover {
+  background: #1a1f2e;
+  color: #fff;
+}
+
 @media (max-width: 768px) {
   .album-header {
     flex-direction: column;

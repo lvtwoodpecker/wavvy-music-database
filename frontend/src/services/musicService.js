@@ -1,28 +1,5 @@
-// Library service hitting the backend; falls back to demo tracks on failure.
+// Library service hitting the backend
 const API = '/api/library/tracks';
-
-const demoTracks = [
-  {
-    id: 'demo-1',
-    title: 'Chill Ambient',
-    artist: 'Wavvy',
-    album: 'Demo Collection',
-    track_number: 1,
-    audio_url: 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_e32846d7d8.mp3?filename=chill-ambient-110387.mp3',
-    cover_url: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=320&auto=format&fit=crop',
-    duration_ms: 120000,
-  },
-  {
-    id: 'demo-2',
-    title: 'Lofi Breeze',
-    artist: 'Wavvy',
-    album: 'Demo Collection',
-    track_number: 2,
-    audio_url: 'https://cdn.pixabay.com/download/audio/2022/03/19/audio_e2d1dd9d29.mp3?filename=lofi-study-112191.mp3',
-    cover_url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=320&auto=format&fit=crop',
-    duration_ms: 180000,
-  },
-];
 
 const normalizeTrack = (t) => ({
   id: t.id || t.track_id || t.uuid || t.slug,
@@ -65,11 +42,11 @@ export const musicService = {
       const data = await res.json();
       const normalized = (Array.isArray(data) ? data : []).map(normalizeTrack)
         .filter((t) => !!t.audio_url);
-      if (normalized.length === 0) return groupByAlbum(demoTracks);
+      console.log('Loaded tracks:', { total: (Array.isArray(data) ? data : []).length, withAudio: normalized.length });
       return groupByAlbum(normalized);
     } catch (e) {
-      console.warn('Falling back to demo tracks:', e.message);
-      return groupByAlbum(demoTracks);
+      console.warn('Failed to load library:', e.message);
+      return [];
     }
   },
 };

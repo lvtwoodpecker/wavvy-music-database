@@ -53,10 +53,10 @@ export default function Playlists() {
         <div className="pls-list">
           {playlists.map(pl => (
             <div key={pl.id} className="pls-item" onClick={() => navigate(`/playlist/${pl.id}`)}>
-              <div className="cover">🎶</div>
+              <div className="cover" style={{ fontSize: '14px', fontWeight: '700' }}>PL</div>
               <div className="meta">
                 <div className="title">{pl.name}</div>
-                <div className="sub">{pl.description || '—'}</div>
+                <div className="sub">{pl.track_count || 0} tracks</div>
               </div>
             </div>
           ))}

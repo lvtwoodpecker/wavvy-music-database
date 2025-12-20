@@ -15,6 +15,7 @@ import Library from "./pages/Library.jsx";
 import AlbumDetail from "./pages/AlbumDetail.jsx";
 import PlaylistPage from "./pages/Playlist.jsx";
 import Playlists from "./pages/Playlists.jsx";
+import LikedSongs from "./pages/LikedSongs.jsx";
 import NowPlaying from "./pages/NowPlaying.jsx";
 import PaymentSuccess from "./pages/PaymentSuccess.jsx";
 import PaymentCancelled from "./pages/PaymentCancelled.jsx";
@@ -49,6 +50,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Playlists />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/liked"
+                element={
+                  <ProtectedRoute>
+                    <LikedSongs />
                   </ProtectedRoute>
                 }
               />
