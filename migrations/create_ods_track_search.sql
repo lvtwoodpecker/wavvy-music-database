@@ -29,7 +29,7 @@ create index if not exists playlisttrack_track_id_idx
 on public."PlaylistTrack" (track_id);
 
 
-Create the Track Searcher Table
+-- Create the Track Searcher Table
 create table if not exists public.ods_track_search (
   track_id bigint primary key,
   track_title text not null,
@@ -43,7 +43,7 @@ create table if not exists public.ods_track_search (
   search_tsv tsvector
 );
 
--- Populating the ods_trak_search
+-- Populating the ods_track_search
 -- That gives you a single “search row” per track. Now searches don’t need 5 joins.
 insert into public.ods_track_search (
   track_id, track_title, artist_names, album_titles, genre_names,
@@ -129,7 +129,7 @@ create index if not exists ods_album_titles_norm_trgm_idx
 on public.ods_track_search
 using gin (album_titles_norm gin_trgm_ops);
 
-Typos + Partials
+-- Typos + Partials
 create index if not exists ods_track_search_title_trgm_idx
 on public.ods_track_search
 using gin (unaccent(track_title) gin_trgm_ops);
