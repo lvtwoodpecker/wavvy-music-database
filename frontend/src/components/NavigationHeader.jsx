@@ -1,12 +1,11 @@
 // NavigationHeader component for fixed header navigation
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import SearchBar from './SearchBar';
 import '../styles/NavigationHeader.css';
 
 function NavigationHeader() {
   const navigate = useNavigate();
-  const location = useLocation();
 
   const handleBack = () => {
     navigate(-1);
