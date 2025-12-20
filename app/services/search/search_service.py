@@ -1,49 +1,49 @@
-# app/services/search/search_service.py
-from __future__ import annotations
 
-from typing import Dict, List
-from app.services.search.search_types import TrackSearchHit
+from typing import Optional, Callable
+
+from app.services import service
 from app.services.search.search_repository import SearchRepository
+from app.services.search.search_track import SearchTrack
 
 
-class SearchService:
-    def __init__(self, repo: SearchRepository):
-        self.repo = repo
+from sqlalchemy.orm import Session
 
-    def search_tracks(self, query: str, limit: int = 25) -> Dict:
-        q = (query or "").strip()
-        if not q:
-            return {"query": q, "results": [], "used": {"fts": False, "trigram": False}}
+SessionFactory = Callable[[], Session]
 
-        prefer_trigram = len(q) <= 3
+class SearchService(service.Service):
+    """Service for managing User-related operations.
+    
+    This service aggregates sub-services for user creation, status management, and user lookups.
+    It depends on StripeService for handling Stripe-related operations during user creation.
+    """
 
-        fts: List[TrackSearchHit] = []
-        tri: List[TrackSearchHit] = []
-        used_fts = False
-        used_tri = False
+    def __init__(self, app):
+        super().__init__(app)
+        self.create_service()
+        
+    def create_service(self):
+        # repo has to be created first
+        self._repo = self._create_repo()
+        self._track_search = self._create_track_search()
+        
+    @property
+    def stripe_service(self) -> SearchRepository:
+        if self._repo is None:
+            self._repo = self._create_repo()
+        return self._repo
 
-        if not prefer_trigram:
-            fts = self.repo.fts_search(q, limit=limit)
-            used_fts = True
-
-        if prefer_trigram or len(fts) < 8:
-            tri = self.repo.trigram_search(q, limit=limit)
-            used_tri = True
-
-        merged = self._merge_best(fts, tri, limit=limit)
-        return {
-            "query": q,
-            "used": {"fts": used_fts, "trigram": used_tri},
-            "results": [hit.__dict__ for hit in merged],
-        }
-
-    @staticmethod
-    def _merge_best(a: List[TrackSearchHit], b: List[TrackSearchHit], limit: int) -> List[TrackSearchHit]:
-        best: Dict[int, TrackSearchHit] = {}
-
-        for hit in a + b:
-            cur = best.get(hit.track_id)
-            if cur is None or hit.score > cur.score:
-                best[hit.track_id] = hit
-
-        return sorted(best.values(), key=lambda x: x.score, reverse=True)[:limit]
+    @property
+    def track_search(self) -> SearchTrack:
+        if self._track_search is None:
+            self._track_search = self._create_track_search()
+        return self._track_search
+    
+    def _create_repo(self) -> SearchRepository:
+        return SearchRepository(
+            db_session_factory=self._db_session_factory,
+        )
+        
+    def _create_track_search(self) -> SearchTrack:
+        return SearchTrack(
+            repo=self._repo
+        )

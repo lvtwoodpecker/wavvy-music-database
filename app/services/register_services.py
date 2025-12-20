@@ -2,6 +2,7 @@ from app.services.user.user_service import UserService
 from app.services.stripe.stripe_service import StripeService
 from app.services.playlist.playlist_service import PlaylistService
 from app.services.library.library_service import LibraryService
+from app.services.search.search_track import SearchService
 
 
 class APIServices:
@@ -24,6 +25,7 @@ class APIServices:
         self._user_service = UserService(app, stripe_service=self._stripe_service)
         self._playlist_service = PlaylistService(app)
         self._library_service = LibraryService(app)
+        self._search_service = SearchService(app)
     
     @property
     def user_service(self) -> UserService:
