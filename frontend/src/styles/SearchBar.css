@@ -207,6 +207,41 @@
   background: #2a3145;
 }
 
+.result-play-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background-color: #1db954;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.result-play-btn:hover:not(:disabled) {
+  background-color: #17a44b;
+}
+
+.result-play-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.play-icon {
+  width: 0;
+  height: 0;
+  border-left: 10px solid #ffffff;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  margin-left: 2px;
+}
+
+.play-icon.disabled {
+  border-left-color: #666666;
+}
+
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .search-bar-container {

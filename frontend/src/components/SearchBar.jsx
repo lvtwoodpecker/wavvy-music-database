@@ -115,7 +115,22 @@ function SearchBar() {
   return (
     <div className="search-bar-container" ref={searchContainerRef}>
       <div className="search-input-wrapper">
-        <span className="search-icon">🔍</span>
+        <span className="search-icon" aria-hidden="true">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+        </span>
+
         <input
           type="text"
           className="search-input"
@@ -125,7 +140,12 @@ function SearchBar() {
           onFocus={() => query && results.length > 0 && setShowResults(true)}
         />
         {query && (
-          <button className="clear-search-btn" onClick={handleClearSearch}>
+          <button 
+          lassName="clear-search-btn" 
+          onClick={handleClearSearch}
+          type="button"
+          aria-label="Clear search"
+          >
             ✕
           </button>
         )}
@@ -157,10 +177,29 @@ function SearchBar() {
                       {track.artist_names && track.album_titles && <span className="result-separator">•</span>}
                       {track.album_titles && <span className="result-album">{track.album_titles}</span>}
                     </div>
-                  </div>
-                  {track.audio_file_url && <button className="result-play-btn">▶</button>}
-                  {!track.audio_file_url && <span className="result-no-audio">🚫</span>}
-                </div>
+
+                    </div>
+
+                    {track.audio_file_url ? (
+                      <button
+                        className="result-play-btn"
+                        aria-label={`Play ${track.track_title}`}
+                        onClick={() => playTrack(track.audio_file_url)}
+                      >
+                        <span className="play-icon" />
+                      </button>
+                    ) : (
+                      <button
+                        className="result-play-btn disabled"
+                        aria-label={`No audio available for ${track.track_title}`}
+                        disabled
+                      >
+                        <span className="play-icon disabled" />
+                      </button>
+                    )}
+
+                    </div>
+
               ))}
             </div>
           )}
