@@ -134,7 +134,7 @@ export default function PlayerBar() {
             type="range"
             min={0}
             max={durationSec}
-            value={Math.floor(progress)}
+            value={Math.floor(Math.min(progress, durationSec))}
             onChange={(e) => seek(parseInt(e.target.value, 10))}
           />
         </div>
