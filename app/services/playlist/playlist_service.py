@@ -45,59 +45,49 @@ class PlaylistService:
             return True
 
     # Tracks
-    def add_track(self, playlist_id: int, owner_id: int, track: Dict[str, Any]) -> Optional[PlaylistTrack]:
+    def add_track(self, playlist_id: int, owner_id, track: Dict[str, Any]) -> Optional[PlaylistTrack]:
         with self._session() as db:
             # verify playlist ownership
             stmt = select(Playlist).where(Playlist.id == playlist_id, Playlist.owner_id == owner_id)
             pl = db.scalars(stmt).first()
             if not pl:
                 return None
-            position = (pl.tracks[-1].position + 1) if pl.tracks else 0
             pt = PlaylistTrack(
                 playlist_id=playlist_id,
-                position=position,
                 track_id=track.get("track_id"),
-                title=track.get("title", "Untitled"),
-                artist=track.get("artist"),
-                audio_url=track.get("audio_url", ""),
-                cover_url=track.get("cover_url"),
-                duration_ms=track.get("duration_ms"),
-                extra=track.get("extra"),
             )
             db.add(pt)
             db.commit()
             db.refresh(pt)
             return pt
 
-    def remove_track(self, playlist_id: int, track_id: int, owner_id: int) -> bool:
+    def remove_track(self, playlist_id: int, track_id: int, owner_id) -> bool:
         with self._session() as db:
             # verify playlist ownership
             stmt = select(Playlist).where(Playlist.id == playlist_id, Playlist.owner_id == owner_id)
             pl = db.scalars(stmt).first()
             if not pl:
                 return False
-            tstmt = select(PlaylistTrack).where(PlaylistTrack.id == track_id, PlaylistTrack.playlist_id == playlist_id)
+            # Remove track using composite key (playlist_id, track_id, date_added)
+            # Get the track to delete
+            tstmt = select(PlaylistTrack).where(PlaylistTrack.playlist_id == playlist_id, PlaylistTrack.track_id == track_id)
             tr = db.scalars(tstmt).first()
             if not tr:
                 return False
             db.delete(tr)
-            # re-number positions
-            for i, track in enumerate(sorted(pl.tracks, key=lambda x: x.position)):
-                track.position = i
             db.commit()
             return True
 
-    def reorder_tracks(self, playlist_id: int, new_order_ids: List[int], owner_id: int) -> bool:
+    def reorder_tracks(self, playlist_id: int, new_order_ids: List[int], owner_id) -> bool:
         with self._session() as db:
             # verify playlist ownership
             stmt = select(Playlist).where(Playlist.id == playlist_id, Playlist.owner_id == owner_id)
             pl = db.scalars(stmt).first()
             if not pl:
                 return False
-            id_to_track = {t.id: t for t in pl.tracks}
-            if set(id_to_track.keys()) != set(new_order_ids):
-                return False
-            for pos, tid in enumerate(new_order_ids):
-                id_to_track[tid].position = pos
-            db.commit()
+            # For now, just verify that all tracks exist
+            for track_id in new_order_ids:
+                tstmt = select(PlaylistTrack).where(PlaylistTrack.playlist_id == playlist_id, PlaylistTrack.track_id == track_id)
+                if not db.scalars(tstmt).first():
+                    return False
             return True

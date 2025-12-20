@@ -25,3 +25,13 @@
 .remove-btn:hover { border-color: #fff; color: #fff; }
 
 .pl-main .error { color:#a0a0a0; }
+
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.confirmation-modal { background: #0f131d; border: 1px solid #1f2533; border-radius: 8px; padding: 24px; max-width: 400px; text-align: center; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); }
+.confirmation-modal h3 { margin: 0 0 12px 0; font-size: 1.25rem; }
+.confirmation-modal p { margin: 0 0 20px 0; color: #a0a0a0; font-size: 0.95rem; }
+.modal-actions { display: flex; gap: 12px; justify-content: center; }
+.cancel-btn { background: #1a2332; color: #a0a0a0; border: 1px solid #2a3a4a; border-radius: 4px; padding: 8px 16px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.cancel-btn:hover { background: #202a38; color: #fff; border-color: #3a4a5a; }
+.confirm-btn { background: #c41e3a; color: #fff; border: none; border-radius: 4px; padding: 8px 16px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.confirm-btn:hover { background: #a01a32; }

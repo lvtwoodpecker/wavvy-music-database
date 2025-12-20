@@ -13,6 +13,7 @@ export default function PlaylistPage() {
   const [playlist, setPlaylist] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [confirmRemove, setConfirmRemove] = useState(null);
 
   const load = async () => {
     try {
@@ -31,6 +32,7 @@ export default function PlaylistPage() {
   const handleRemoveTrack = async (trackId) => {
     try {
       await playlistService.removeTrack(token, id, trackId);
+      setConfirmRemove(null);
       await load();
     } catch (e) {
       setError(e.message);
@@ -66,7 +68,7 @@ export default function PlaylistPage() {
                   <span className="title">{t.title}</span>
                   <span className="artist">{t.artist || 'Unknown'}</span>
                 </div>
-                <button className="remove-btn" onClick={(e) => { e.stopPropagation(); handleRemoveTrack(t.id); }} title="Remove from playlist">✕</button>
+                <button className="remove-btn" onClick={(e) => { e.stopPropagation(); setConfirmRemove(t); }} title="Remove from playlist">✕</button>
               </div>
             );
           })
@@ -74,6 +76,19 @@ export default function PlaylistPage() {
           <p>No tracks yet.</p>
         )}
       </div>
+
+      {confirmRemove && (
+        <div className="modal-overlay">
+          <div className="confirmation-modal">
+            <h3>Remove Song?</h3>
+            <p>Are you sure you want to remove "{confirmRemove.title}" from this playlist?</p>
+            <div className="modal-actions">
+              <button className="cancel-btn" onClick={() => setConfirmRemove(null)}>Cancel</button>
+              <button className="confirm-btn" onClick={() => handleRemoveTrack(confirmRemove.id)}>Remove</button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
