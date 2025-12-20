@@ -41,6 +41,9 @@ class SearchRepository:
         tsq = func.websearch_to_tsquery("simple", func.unaccent(q))
         rank = func.ts_rank_cd(ODSTrackSearch.search_tsv, tsq)
 
+        # Join with Track table to get audio_file_url
+        from app.models.Track import Track
+        
         stmt = (
             select(
                 ODSTrackSearch.track_id,
@@ -48,8 +51,10 @@ class SearchRepository:
                 ODSTrackSearch.artist_names,
                 ODSTrackSearch.album_titles,
                 ODSTrackSearch.genre_names,
+                Track.audio_file_url,
                 rank.label("score"),
             )
+            .join(Track, ODSTrackSearch.track_id == Track.track_id)
             .where(ODSTrackSearch.search_tsv.op("@@")(tsq))
             .order_by(rank.desc())
             .limit(limit)
@@ -63,6 +68,7 @@ class SearchRepository:
                 artist_names=r.artist_names,
                 album_titles=r.album_titles,
                 genre_names=r.genre_names,
+                audio_file_url=r.audio_file_url,
                 score=float(r.score or 0.0),
                 source="fts",
             )
@@ -80,6 +86,9 @@ class SearchRepository:
         Returns:
             List of TrackSearchHit objects ordered by similarity score
         """
+        # Join with Track table to get audio_file_url
+        from app.models.Track import Track
+        
         q_norm = func.lower(func.unaccent(q))
         score = func.greatest(
             func.similarity(ODSTrackSearch.track_title_norm, q_norm),
@@ -101,8 +110,10 @@ class SearchRepository:
                 ODSTrackSearch.artist_names,
                 ODSTrackSearch.album_titles,
                 ODSTrackSearch.genre_names,
+                Track.audio_file_url,
                 score.label("score"),
             )
+            .join(Track, ODSTrackSearch.track_id == Track.track_id)
             .where(trigram_filter)
             .order_by(score.desc())
             .limit(limit)
@@ -116,6 +127,7 @@ class SearchRepository:
                 artist_names=r.artist_names,
                 album_titles=r.album_titles,
                 genre_names=r.genre_names,
+                audio_file_url=r.audio_file_url,
                 score=float(r.score or 0.0),
                 source="trigram",
             )
