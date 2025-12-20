@@ -8,8 +8,10 @@ from typing import Optional
 from app.db.supabase_client import supabase
 from app.services.spotify_service import get_spotify_token, fetch_spotify_api
 
-if not supabase:
-    raise Exception("Supabase client not initialized")
+def _ensure_supabase():
+    """Ensure Supabase client is available before use."""
+    if supabase is None:
+        raise RuntimeError("Supabase client not initialized")
 
 
 def download_image(url: str) -> Optional[bytes]:
@@ -37,6 +39,7 @@ def upload_to_supabase_storage(file_content: bytes, file_path: str, bucket: str 
         Public URL of the uploaded file, or None if failed
     """
     try:
+        _ensure_supabase()
         # Upload file to Supabase Storage
         response = supabase.storage.from_(bucket).upload(
             file_path,
@@ -46,16 +49,16 @@ def upload_to_supabase_storage(file_content: bytes, file_path: str, bucket: str 
         
         # Construct public URL manually
         # Format: https://{project_ref}.supabase.co/storage/v1/object/public/{bucket}/{path}
-        from app.config import settings
-        supabase_url = settings.SUPABASE_URL.rstrip('/')
+        from app.config import Settings
+        supabase_url = Settings().SUPABASE_URL.rstrip('/')
         public_url = f"{supabase_url}/storage/v1/object/public/{bucket}/{file_path}"
         
         return public_url
     except Exception as e:
         # Try to construct URL anyway (in case upload succeeded but response failed)
         try:
-            from app.config import settings
-            supabase_url = settings.SUPABASE_URL.rstrip('/')
+            from app.config import Settings
+            supabase_url = Settings().SUPABASE_URL.rstrip('/')
             return f"{supabase_url}/storage/v1/object/public/{bucket}/{file_path}"
         except:
             return None
@@ -128,6 +131,7 @@ def fetch_and_store_album_cover(album_id: int, spotify_album_data: Optional[dict
         True if cover was successfully stored, False otherwise
     """
     try:
+        _ensure_supabase()
         # Check if album already has a cover
         if skip_if_exists:
             album_check = supabase.from_("Album").select("cover_image_url").eq("album_id", album_id).limit(1).execute()

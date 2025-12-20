@@ -21,8 +21,9 @@ from app.services.track_info_and_relationship_service import (
 )
 from app.services.album_cover_service import fetch_and_store_album_cover
 
-if not supabase:
-    raise Exception("Supabase client not initialized")
+def _ensure_supabase():
+    if supabase is None:
+        raise RuntimeError("Supabase client not initialized")
 
 
 def download_csv(url: str) -> List[Dict]:
@@ -101,6 +102,7 @@ def get_random_album_for_artist(spotify_artist_id: str, token: str) -> Optional[
 def ingest_album_with_tracks(spotify_album_data: Dict, csv_genre: Optional[str], token: str) -> bool:
     """Ingest an album and its tracks into the database."""
     try:
+        _ensure_supabase()
         # Get label
         label_name = spotify_album_data.get('label', 'Unknown Label')
         
@@ -233,6 +235,7 @@ def main():
     print("=" * 60)
     print("Bulk Artist Ingestion Script")
     print("=" * 60)
+    _ensure_supabase()
     
     # CSV URL
     csv_url = "https://gist.githubusercontent.com/mbejda/9912f7a366c62c1f296c/raw/dd94a25492b3062f4ca0dc2bb2cdf23fec0896ea/10000-MTV-Music-Artists-page-1.csv"

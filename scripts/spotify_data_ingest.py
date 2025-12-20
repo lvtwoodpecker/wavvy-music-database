@@ -23,13 +23,15 @@ from app.services.track_info_and_relationship_service import (
 )
 from app.db.supabase_client import supabase
 
-if not supabase:
-    raise Exception("Supabase client not initialized")
+def _ensure_supabase():
+    if supabase is None:
+        raise RuntimeError("Supabase client not initialized")
 
 
 def ingest_data(artist_name):
     """Main ingestion function for artist data."""
     try:
+        _ensure_supabase()
         print("Starting ingestion process...")
         token = get_spotify_token()
         print("Spotify token acquired.")

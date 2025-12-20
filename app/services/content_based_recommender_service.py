@@ -14,9 +14,6 @@ from sklearn.preprocessing import StandardScaler
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 from app.db.supabase_client import supabase
 
-if not supabase:
-    raise Exception("Supabase client not initialized")
-
 MODEL_NAME_PLAYLIST = 'content_based_recommender_playlist'
 MODEL_NAME_USER = 'content_based_recommender_user'
 RETRAIN_THRESHOLD = 0.1
@@ -35,8 +32,14 @@ class ContentBasedRecommenderService:
         self._cached_all_tracks_features = None
         self._cached_all_track_ids = None
         self._cached_genre_encoding = None
+
+    def _ensure_supabase(self):
+        """Ensure Supabase client is initialized before use."""
+        if not supabase:
+            raise Exception("Supabase client not initialized")
     
     def _get_total_tracks_count(self) -> int:
+        self._ensure_supabase()
         try:
             af_response = supabase.from_("AudioFeatures").select("track_id", count="exact").execute()
             if hasattr(af_response, 'count') and af_response.count is not None:
@@ -52,6 +55,7 @@ class ContentBasedRecommenderService:
                 return 0
     
     def _get_model_metadata(self, model_name: str) -> Optional[Dict]:
+        self._ensure_supabase()
         try:
             response = supabase.from_("ModelCache").select("metadata").eq("model_name", model_name).limit(1).execute()
             if response.data and len(response.data) > 0:
@@ -81,6 +85,7 @@ class ContentBasedRecommenderService:
         return should_retrain
     
     def _load_cached_model(self, model_name: str) -> bool:
+        self._ensure_supabase()
         try:
             print(f"[ModelCache] Attempting to load cached model {model_name}")
             response = supabase.from_("ModelCache").select("model_data, metadata").eq("model_name", model_name).limit(1).execute()
@@ -148,6 +153,7 @@ class ContentBasedRecommenderService:
     
     def _save_model(self, model_name: str, model: NearestNeighbors, feature_matrix: np.ndarray, 
                    track_ids: List[int], genre_encoding: Dict[str, int]):
+        self._ensure_supabase()
         try:
             model_data = {
                 'model': model,
@@ -213,6 +219,7 @@ class ContentBasedRecommenderService:
     def _get_all_genres(self) -> Dict[str, int]:
         if self._cached_genre_encoding is not None:
             return self._cached_genre_encoding
+        self._ensure_supabase()
         
         genre_response = supabase.from_("Genre").select("genre_id, name").execute()
         if not genre_response.data:
@@ -247,6 +254,7 @@ class ContentBasedRecommenderService:
     def _batch_get_track_features(self, track_ids: List[int], genre_encoding: Dict[str, int]) -> Dict[int, Dict]:
         if not track_ids:
             return {}
+        self._ensure_supabase()
         
         features_map = {}
         
@@ -301,6 +309,7 @@ class ContentBasedRecommenderService:
         return np.array(feature_vectors), track_ids
     
     def _train_all_tracks_model(self, model_name: str, max_tracks: int = 5000, force_retrain: bool = False) -> Tuple[Optional[np.ndarray], List[int], Optional[NearestNeighbors]]:
+        self._ensure_supabase()
         if not force_retrain and not self._should_retrain(model_name):
             if self._cached_all_tracks_model is not None:
                 return self._cached_all_tracks_features, self._cached_all_track_ids, self._cached_all_tracks_model
@@ -342,6 +351,7 @@ class ContentBasedRecommenderService:
         return feature_matrix_scaled, valid_track_ids, knn
     
     def _get_playlist_tracks(self, playlist_id: int) -> List[Dict]:
+        self._ensure_supabase()
         pt_response = supabase.from_("PlaylistTrack").select(
             "track_id, date_added"
         ).eq("playlist_id", playlist_id).is_("date_removed", "null").execute()
@@ -369,6 +379,7 @@ class ContentBasedRecommenderService:
         return tracks
     
     def _get_user_history_tracks(self, listener_id: str, limit: int = 100) -> List[Dict]:
+        self._ensure_supabase()
         ph_response = supabase.from_("PlayHistory").select(
             "track_id, played_at"
         ).eq("listener_id", listener_id).order("played_at", desc=True).limit(limit).execute()
@@ -396,6 +407,7 @@ class ContentBasedRecommenderService:
         return tracks
     
     def recommend_for_playlist(self, playlist_id: int, n_recommendations: int = 10) -> List[Dict]:
+        self._ensure_supabase()
         playlist_tracks = self._get_playlist_tracks(playlist_id)
         
         if not playlist_tracks:
@@ -455,6 +467,7 @@ class ContentBasedRecommenderService:
         return recommendations
     
     def recommend_for_user(self, listener_id: str, n_recommendations: int = 10) -> List[Dict]:
+        self._ensure_supabase()
         recent_history = self._get_user_history_tracks(listener_id, limit=10)
         recent_track_ids = {item['track']['track_id'] for item in recent_history}
         

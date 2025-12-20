@@ -7,8 +7,6 @@ from app.db.supabase_client import supabase
 from app.services.spotify_service import fetch_spotify_api, get_spotify_token
 from app.services.reccobeats_service import ReccoBeatsService
 
-if not supabase:
-    raise Exception("Supabase client not initialized")
 
 
 def _fetch_and_save_audio_features(track_id: int, track_title: str, 

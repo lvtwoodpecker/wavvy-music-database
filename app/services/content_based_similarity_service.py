@@ -15,8 +15,6 @@ from sklearn.metrics.pairwise import cosine_similarity
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 from app.db.supabase_client import supabase
 
-if not supabase:
-    raise Exception("Supabase client not initialized")
 
 MODEL_NAME = 'content_based_similarity'
 RETRAIN_THRESHOLD = 0.1

@@ -11,8 +11,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 import musicbrainzngs
 from app.db.supabase_client import supabase
 
-if not supabase:
-    raise Exception("Supabase client not initialized")
+def _ensure_supabase():
+    if supabase is None:
+        raise RuntimeError("Supabase client not initialized")
 
 # Configure MusicBrainz
 musicbrainzngs.set_useragent("Wavvy-ISWC-Ingest", "1.0", "https://github.com/yourusername/wavvy")
@@ -108,6 +109,7 @@ def search_iswc_by_title_artist(title, artist_name):
 def update_works_with_iswc(limit=None, track_id=None):
     """Updates Work records in the database with ISWC codes from MusicBrainz."""
     try:
+        _ensure_supabase()
         print("Starting ISWC data ingestion from MusicBrainz...")
         
         query = supabase.from_("Track").select("track_id, title, isrc")
@@ -213,6 +215,7 @@ def update_from_iswc_file(file_path):
     import csv
     
     try:
+        _ensure_supabase()
         print(f"Loading ISWC data from file: {file_path}")
         
         updated_count = 0

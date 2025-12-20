@@ -17,14 +17,16 @@ from app.services.spotify_service import (
 )
 from app.services.track_info_and_relationship_service import add_song_info
 from app.db.supabase_client import supabase
-from app.config import settings
+# Config is accessed via services and clients; no direct settings import needed here.
 
-if not supabase:
-    raise Exception("Supabase client not initialized")
+def _ensure_supabase():
+    if supabase is None:
+        raise RuntimeError("Supabase client not initialized")
 
 
 def get_or_create_user(username="cedricster", email=None, country="US"):
     """Get or create a user in the database."""
+    _ensure_supabase()
     if email is None:
         email = f"{username}@wavvy.local"
     
@@ -68,6 +70,7 @@ def get_or_create_user(username="cedricster", email=None, country="US"):
 
 def get_or_create_listener(user_id):
     """Get or create a listener linked to a user."""
+    _ensure_supabase()
     existing_listener = supabase.from_("Listener").select("*").eq("user_id", user_id).limit(1).execute()
     
     if existing_listener.data:
@@ -540,8 +543,9 @@ if __name__ == "__main__":
     print("Spotify Data Ingestion Script")
     print("=" * 50)
     
-    # Try to get token from env or settings
-    user_token = os.environ.get("SPOTIFY_USER_TOKEN") or getattr(settings, 'SPOTIFY_USER_TOKEN', None)
+    # Try to get token from env
+    user_token = os.environ.get("SPOTIFY_USER_TOKEN")
+    _ensure_supabase()
     
     if not user_token:
         print("\nTo use this script, you need a Spotify user access token.")

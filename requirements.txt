@@ -1,11 +1,10 @@
 supabase
-dotenv
 beautifulsoup4
 requests
 musicbrainzngs
 Flask
+Flask-CORS
 stripe
-dotenv
 sqlalchemy
 psycopg2
 numpy
@@ -13,5 +12,4 @@ scikit-learn
 pytest
 PyJWT
 bcrypt
-Flask-CORS
-bcrypt
+python-dotenv

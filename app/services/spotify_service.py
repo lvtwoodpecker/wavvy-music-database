@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from typing import Dict, Optional
 from bs4 import BeautifulSoup
 from app.config import Settings
-from app. db.supabase_client import supabase
+from app.db.supabase_client import supabase
 
 settings = Settings()
 
