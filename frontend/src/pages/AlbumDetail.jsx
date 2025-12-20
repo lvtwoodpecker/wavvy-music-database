@@ -15,7 +15,7 @@ export default function AlbumDetail() {
   if (!album) {
     return (
       <main className="album-detail">
-        <button className="back-btn" onClick={() => navigate('/library')}>← Back</button>
+        <button className="back-btn" onClick={() => navigate(-1)}>← Back</button>
         <p>Album not found. <a href="/library">Go back to Library</a>.</p>
       </main>
     );
@@ -36,7 +36,7 @@ export default function AlbumDetail() {
 
   return (
     <main className="album-detail">
-      <button className="back-btn" onClick={() => navigate('/library')}>← Back to Library</button>
+      <button className="back-btn" onClick={() => navigate(-1)}>← Back</button>
 
       <div className="album-header">
         {album.cover_url ? (
@@ -62,7 +62,7 @@ export default function AlbumDetail() {
             return (
               <div key={`${track.id}-${idx}`} className={`track-item ${isCurrentTrack ? 'active' : ''}`}>
                 <div className="track-number">{(track.track_no || idx + 1).toString().padStart(2, '0')}</div>
-                <div className="track-info" onClick={() => handlePlayTrack(track)}>
+                <div className="track-info" onDoubleClick={() => handlePlayTrack(track)}>
                   <div className="track-title">{track.title}</div>
                   <div className="track-artist">{track.artist}</div>
                 </div>
