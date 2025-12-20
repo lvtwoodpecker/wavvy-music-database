@@ -85,13 +85,13 @@ class TestSearchService:
         
         # Test upper bound
         search_service.search("test", limit=200)
-        args = mock_repository.search_tracks_hybrid.call_args
-        assert args[1]["limit"] == 100
+        args, kwargs = mock_repository.search_tracks_hybrid.call_args
+        assert args[1] == 100  # limit is second positional arg
         
         # Test lower bound
         search_service.search("test", limit=-5)
-        args = mock_repository.search_tracks_hybrid.call_args
-        assert args[1]["limit"] == 1
+        args, kwargs = mock_repository.search_tracks_hybrid.call_args
+        assert args[1] == 1  # limit is second positional arg
     
     def test_sanitize_query(self, search_service):
         """Test query sanitization."""
