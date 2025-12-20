@@ -1,3 +1,7 @@
+:root {
+  --pl-track-row-height: 56px; /* adjust if needed */
+}
+
 .pl-main { padding:32px 24px 120px; max-width: 1000px; margin: 0 auto; }
 
 .back-btn { background: none; border: none; color: #a0a0a0; font-size: 1rem; cursor: pointer; margin-bottom: 1.5rem; padding: 0.5rem 0; transition: color 0.2s; }
@@ -16,7 +20,20 @@
 .pl-delete-btn { background: transparent; color: #c41e3a; border: 1px solid #c41e3a; border-radius: 4px; padding: 6px 12px; font-size: 0.85rem; font-weight: 600; cursor: pointer; margin-top: 8px; margin-left: 8px; transition: all 0.2s; }
 .pl-delete-btn:hover { background: #c41e3a; color: #fff; }
 
-.pl-tracks { border-top:1px solid #1f2533; background:#0f131d; border-radius:12px; box-shadow: var(--card-shadow); overflow: hidden; }
+.pl-tracks {
+  border-top: 1px solid #1f2533;
+  background: #0f131d;
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+
+  max-height: calc(var(--pl-track-row-height) * 7 + 2px); /* Show 7 tracks max */
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  min-height: 0;
+}
+
+
 .pl-track { display:grid; grid-template-columns: 40px 1fr auto; gap:12px; padding:12px 16px; border-bottom:1px solid #1b202d; cursor:pointer; align-items: center; transition: background 0.2s; }
 .pl-track:hover { background:#101521; }
 .pl-track.active { background: rgba(255, 255, 255, 0.08); border-bottom-color: rgba(255, 255, 255, 0.15); }

@@ -1,11 +1,74 @@
-.lib-main { padding: 32px 24px 120px; max-width: 1200px; margin: 0 auto; }
-.lib-grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(180px,1fr)); gap:16px; }
-.lib-card { background:#0f131d; border:1px solid #1f2533; border-radius:14px; overflow:hidden; cursor:pointer; box-shadow: var(--card-shadow); transition: transform 0.12s ease; }
-.lib-card:hover { transform: translateY(-3px); }
-.lib-card img, .lib-cover-fallback { width:100%; height:180px; object-fit:cover; display:flex; align-items:center; justify-content:center; font-size:32px; color: var(--text); background:#1d2330; }
-.lib-card .meta { padding:12px; }
-.lib-card .title { font-weight:700; }
-.lib-card .artist { font-size:12px; color: var(--muted); }
-.lib-card .count { font-size:11px; color: var(--muted); margin-top:4px; }
-.lib-play-btn { background: #fff; color: #000; border: none; border-radius: 4px; padding: 6px 12px; font-size: 0.85rem; font-weight: 600; cursor: pointer; margin-top: 8px; width: 100%; transition: background 0.2s; }
-.lib-play-btn:hover { background: #e0e0e0; }
+.lib-main {
+  padding: 32px 24px 120px;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 64px);
+}
+
+.lib-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+
+  overflow-y: auto;
+}
+
+
+/* .lib-grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(180px,1fr)); gap:16px; } */
+.lib-card {
+  perspective: 1000px;
+  height: 260px;
+}
+.lib-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.6s ease;
+}
+
+.lib-card:hover .lib-card-inner {
+  transform: rotateY(180deg);
+}
+
+.lib-card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #0f131d;
+  border: 1px solid #1f2533;
+  box-shadow: var(--card-shadow);
+}
+
+.lib-card-front {
+  display: flex;
+  flex-direction: column;
+}
+
+.lib-front-title {
+  padding: 4px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.lib-card-back {
+  transform: rotateY(180deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lib-card-back .meta {
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lib-card-inner {
+    transition: none;
+  }
+}

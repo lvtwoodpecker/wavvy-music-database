@@ -88,7 +88,7 @@ export default function AlbumDetail() {
 
       <div className="album-tracks">
         <h2>Tracks</h2>
-        <div className="track-list">
+        <div className="pl-tracks">
           {album.tracks.map((track, idx) => {
             const isCurrentTrack = current?.id === track.id;
             const showPlaylistMenu = playlistMenuTrack === track.id;
