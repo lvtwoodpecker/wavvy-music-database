@@ -297,7 +297,7 @@ CREATE TABLE public.Work (
   title character varying NOT NULL,
   iswc character varying UNIQUE,
   language text,
-  decals_release numeric,
+  decades_release numeric,
   CONSTRAINT Work_pkey PRIMARY KEY (work_id)
 );
 CREATE TABLE public.WorkComposer (

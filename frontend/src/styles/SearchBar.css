@@ -15,7 +15,6 @@
   border: 1px solid #1f2533;
   border-radius: 24px;
   padding: 12px 20px;
-  margin-left: 15%;
   gap: 12px;
   transition: border-color 0.2s ease;
 }

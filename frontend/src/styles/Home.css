@@ -48,7 +48,6 @@
   align-items: center;
   gap: 12px;
   background: #0f131d;
-  /* border: 1px solid #1f2533; */
   padding: 8px 12px;
   border-radius: 999px;
   box-shadow: var(--card-shadow);
