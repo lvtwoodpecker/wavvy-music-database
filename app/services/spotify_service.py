@@ -1,5 +1,5 @@
 """
-Spotify API service with reusable functions for data ingestion.
+Spotify API service with reusable functions for data ingestion. 
 """
 import os
 import base64
@@ -8,6 +8,10 @@ import requests
 from datetime import datetime, timezone
 from typing import Dict, Optional
 from bs4 import BeautifulSoup
+from app.config import Settings
+from app. db.supabase_client import supabase
+
+settings = Settings()
 
 def get_spotify_token(client_id=None, client_secret=None):
     """
