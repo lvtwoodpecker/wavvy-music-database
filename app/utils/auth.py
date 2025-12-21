@@ -45,7 +45,7 @@ def verify_password(password: str, password_hash: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
 
 
-def generate_token(user_id: int, email: str) -> str:
+def generate_token(user_id: int, email: str, role: str) -> str:
     """Generate a JWT token for a user.
     
     Args:
@@ -59,7 +59,8 @@ def generate_token(user_id: int, email: str) -> str:
         "user_id": user_id,
         "email": email,
         "exp": datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRATION_HOURS),
-        "iat": datetime.now(timezone.utc)
+        "iat": datetime.now(timezone.utc),
+        "role": role
     }
     token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
     return token
@@ -127,5 +128,52 @@ def login_required(f):
         request.current_user = payload
         
         return f(*args, **kwargs)
+    
+    return decorated_function
+
+
+def admin_required(f):
+    """Decorator to protect routes that require admin role.
+    
+    Usage:
+        @app.route('/admin-only')
+        @admin_required
+        def admin_route():
+            # Access current_user from request context
+            user_id = request.current_user['user_id']
+            return jsonify({"message": "Admin data"})
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        from app.services.user.find_user import FindUserService
+        from app.db.sqlalchemy_engine import SessionLocal
+        
+        token = get_token_from_request()
+        
+        if not token:
+            return jsonify({"error": "Authentication required"}), 401
+        
+        payload = decode_token(token)
+        if not payload:
+            return jsonify({"error": "Invalid or expired token"}), 401
+        
+        # Check user role in database
+        db = SessionLocal()
+        try:
+            find_user_service = FindUserService(db)
+            user = find_user_service.get_user_by_email(payload.get('email'))
+            
+            if not user:
+                return jsonify({"error": "User not found"}), 404
+            
+            if user.role.value != 'admin':
+                return jsonify({"error": "Admin access required"}), 403
+            
+            # Attach user info to request context
+            request.current_user = payload
+            
+            return f(*args, **kwargs)
+        finally:
+            db.close()
     
     return decorated_function

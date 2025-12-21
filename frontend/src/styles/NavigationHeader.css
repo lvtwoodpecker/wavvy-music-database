@@ -96,6 +96,19 @@
   height: 40px;
 }
 
+.nav-btn.admin-btn {
+  width: 40px;
+  height: 40px;
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.nav-btn.admin-btn:hover {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: rgba(139, 92, 246, 0.5);
+  color: #c4b5fd;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .navigation-header {

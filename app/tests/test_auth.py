@@ -28,9 +28,10 @@ def test_token_generation_and_decoding():
     """Test JWT token generation and validation."""
     user_id = 123
     email = "test@example.com"
+    role = "user"
     
     # Generate token
-    token = generate_token(user_id, email)
+    token = generate_token(user_id, email, role)
     assert token
     
     # Decode token
