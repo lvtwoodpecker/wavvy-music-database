@@ -17,7 +17,7 @@ class LibraryService:
         if not self.supabase:
             return []
 
-        table_candidates = ["tracks", "Track"]
+        table_candidates = ["Track"]
         select_clause = (
             "track_id,title,duration_ms,audio_file_url,"
             "AlbumTrack(track_no,Album(title,cover_image_url)),"

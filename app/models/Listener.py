@@ -17,6 +17,8 @@ class Listener(Base):
     ad_free = Column(Boolean, default=False, nullable=False)
 
     user = relationship("User", back_populates="listener_profile")
+    
+    play_history = relationship("PlayHistory", back_populates="listener")
 
     def __repr__(self):
         return f"<Listener(id={self.listener_id}, user_id={self.user_id})>"

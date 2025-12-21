@@ -5,13 +5,13 @@ from app.db.sqlalchemy_engine import Base
 
 class SubscriptionHistory(Base):
     __tablename__ = "SubscriptionHistory"
-    __table_args__ = {"schema": "public"}  # ✅ important
+    __table_args__ = {"schema": "public"} 
 
     id = Column(Integer, primary_key=True, autoincrement=True)
 
     user_id = Column(
-        BigInteger,  # ✅ match public.User.user_id (bigint)
-        ForeignKey("public.User.user_id", ondelete="CASCADE"),  # ✅ schema-qualified
+        BigInteger, 
+        ForeignKey("public.User.user_id", ondelete="CASCADE"), 
         nullable=False,
         index=True,
     )

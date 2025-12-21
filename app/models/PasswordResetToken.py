@@ -7,13 +7,13 @@ from app.db.sqlalchemy_engine import Base
 
 class PasswordResetToken(Base):
     __tablename__ = "PasswordResetToken"
-    __table_args__ = {"schema": "public"}  # ✅
-
+    __table_args__ = {"schema": "public"} 
+    
     id = Column(Integer, primary_key=True, autoincrement=True)
 
     user_id = Column(
-        BigInteger,  # ✅ match public.User.user_id
-        ForeignKey("public.User.user_id", ondelete="CASCADE"),  # ✅ schema-qualified
+        BigInteger, 
+        ForeignKey("public.User.user_id", ondelete="CASCADE"),  
         nullable=False,
         index=True,
     )

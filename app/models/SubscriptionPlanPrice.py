@@ -19,7 +19,6 @@ from sqlalchemy.sql import func
 
 from app.db.sqlalchemy_engine import Base
 
-
 class SubscriptionPlanPrice(Base):
     __tablename__ = "subscriptionplanprice"
     __table_args__ = (
