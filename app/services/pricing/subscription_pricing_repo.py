@@ -8,15 +8,10 @@ from sqlalchemy import select, desc, and_, or_
 from sqlalchemy.orm import Session
 
 from app.models.SubscriptionPlanPrice import SubscriptionPlanPrice
+from app.services.pricing.price_key import PriceKey
 
 SessionFactory = Callable[[], Session]
 
-
-@dataclass(frozen=True)
-class PriceKey:
-    plan_id: int
-    country_code: Optional[str] = None
-    currency_code: str = "USD"
 
 class SubscriptionPricingRepo:
     def __init__(self, db_session_factory: SessionFactory) -> None:
