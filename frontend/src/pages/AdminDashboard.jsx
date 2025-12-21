@@ -1,5 +1,5 @@
 // src/pages/AdminDashboard.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import '../styles/AdminDashboard.css';
 import PricingCard from '../components/PricingCard.jsx';
@@ -489,10 +489,17 @@ function AdminDashboard() {
     </div>
   );
 
-  const renderRevenueSection = () => (
-    <div className="admin-section">
-      <h2>Revenue Analytics</h2>
-      {revenueAnalytics && (
+  const renderRevenueSection = () => {
+    if (!revenueAnalytics) return null;
+    
+    const maxRevenue = useMemo(
+      () => Math.max(...revenueAnalytics.revenue_trend.map(d => d.revenue)),
+      [revenueAnalytics.revenue_trend]
+    );
+
+    return (
+      <div className="admin-section">
+        <h2>Revenue Analytics</h2>
         <>
           <div className="stats-grid">
             <div className="stat-card">
@@ -531,21 +538,18 @@ function AdminDashboard() {
           <div className="revenue-trend-section">
             <h3>Revenue Trend (Last 6 Months)</h3>
             <div className="simple-chart">
-              {revenueAnalytics.revenue_trend.map((item, idx) => {
-                const maxRevenue = Math.max(...revenueAnalytics.revenue_trend.map(d => d.revenue));
-                return (
-                  <div key={idx} className="chart-bar">
-                    <div className="bar-label">{item.month}</div>
-                    <div className="bar-container">
-                      <div 
-                        className="bar-fill revenue-bar" 
-                        style={{ width: `${(item.revenue / maxRevenue) * 100}%` }}
-                      ></div>
-                    </div>
-                    <div className="bar-value">${(item.revenue / 1000).toFixed(1)}k</div>
+              {revenueAnalytics.revenue_trend.map((item, idx) => (
+                <div key={idx} className="chart-bar">
+                  <div className="bar-label">{item.month}</div>
+                  <div className="bar-container">
+                    <div 
+                      className="bar-fill revenue-bar" 
+                      style={{ width: `${(item.revenue / maxRevenue) * 100}%` }}
+                    ></div>
                   </div>
-                );
-              })}
+                  <div className="bar-value">${(item.revenue / 1000).toFixed(1)}k</div>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -556,14 +560,21 @@ function AdminDashboard() {
             </div>
           </div>
         </>
-      )}
-    </div>
-  );
+      </div>
+    );
+  };
 
-  const renderPlatformStatsSection = () => (
-    <div className="admin-section">
-      <h2>Platform Statistics</h2>
-      {platformStats && (
+  const renderPlatformStatsSection = () => {
+    if (!platformStats) return null;
+    
+    const maxUsers = useMemo(
+      () => Math.max(...platformStats.user_growth.map(d => d.users)),
+      [platformStats.user_growth]
+    );
+
+    return (
+      <div className="admin-section">
+        <h2>Platform Statistics</h2>
         <>
           <div className="stats-grid">
             <div className="stat-card">
@@ -605,32 +616,36 @@ function AdminDashboard() {
           <div className="user-growth-section">
             <h3>User Growth (Last 6 Months)</h3>
             <div className="simple-chart">
-              {platformStats.user_growth.map((item, idx) => {
-                const maxUsers = Math.max(...platformStats.user_growth.map(d => d.users));
-                return (
-                  <div key={idx} className="chart-bar">
-                    <div className="bar-label">{item.month}</div>
-                    <div className="bar-container">
-                      <div 
-                        className="bar-fill growth-bar" 
-                        style={{ width: `${(item.users / maxUsers) * 100}%` }}
-                      ></div>
-                    </div>
-                    <div className="bar-value">{item.users.toLocaleString()}</div>
+              {platformStats.user_growth.map((item, idx) => (
+                <div key={idx} className="chart-bar">
+                  <div className="bar-label">{item.month}</div>
+                  <div className="bar-container">
+                    <div 
+                      className="bar-fill growth-bar" 
+                      style={{ width: `${(item.users / maxUsers) * 100}%` }}
+                    ></div>
                   </div>
-                );
-              })}
+                  <div className="bar-value">{item.users.toLocaleString()}</div>
+                </div>
+              ))}
             </div>
           </div>
         </>
-      )}
-    </div>
-  );
+      </div>
+    );
+  };
 
-  const renderUserActivitySection = () => (
-    <div className="admin-section">
-      <h2>User Activity Analytics</h2>
-      {userActivity && (
+  const renderUserActivitySection = () => {
+    if (!userActivity) return null;
+    
+    const maxPeakUsers = useMemo(
+      () => Math.max(...userActivity.peak_hours.map(d => d.users)),
+      [userActivity.peak_hours]
+    );
+
+    return (
+      <div className="admin-section">
+        <h2>User Activity Analytics</h2>
         <>
           <div className="stats-grid">
             <div className="stat-card">
@@ -654,21 +669,18 @@ function AdminDashboard() {
           <div className="peak-hours-section">
             <h3>Peak Usage Hours</h3>
             <div className="simple-chart">
-              {userActivity.peak_hours.map((item, idx) => {
-                const maxUsers = Math.max(...userActivity.peak_hours.map(d => d.users));
-                return (
-                  <div key={idx} className="chart-bar">
-                    <div className="bar-label">{item.hour}</div>
-                    <div className="bar-container">
-                      <div 
-                        className="bar-fill activity-bar" 
-                        style={{ width: `${(item.users / maxUsers) * 100}%` }}
-                      ></div>
-                    </div>
-                    <div className="bar-value">{item.users.toLocaleString()}</div>
+              {userActivity.peak_hours.map((item, idx) => (
+                <div key={idx} className="chart-bar">
+                  <div className="bar-label">{item.hour}</div>
+                  <div className="bar-container">
+                    <div 
+                      className="bar-fill activity-bar" 
+                      style={{ width: `${(item.users / maxPeakUsers) * 100}%` }}
+                    ></div>
                   </div>
-                );
-              })}
+                  <div className="bar-value">{item.users.toLocaleString()}</div>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -705,9 +717,9 @@ function AdminDashboard() {
             </div>
           </div>
         </>
-      )}
-    </div>
-  );
+      </div>
+    );
+  };
 
   return (
     <div className="admin-dashboard">
