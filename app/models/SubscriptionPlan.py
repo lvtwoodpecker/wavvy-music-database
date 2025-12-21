@@ -16,10 +16,10 @@ class SubscriptionPlan(Base):
     feature_set: Mapped[Optional[Dict[str, Any]]] = mapped_column(nullable=True)
 
     # Relationship: all price history rows for this plan
-    price_history: Mapped[List["SubscriptionPlanPrice"]] = relationship(
-        "SubscriptionPlanPrice",
+    price_history: Mapped[List["subscriptionplanprice"]] = relationship(
+        "subscriptionplanprice",
         back_populates="plan",
         cascade="all, delete-orphan",
         passive_deletes=True,
-        order_by="SubscriptionPlanPrice.effective_from.desc()",
+        order_by="subscriptionplanprice.effective_from.desc()",
     )
