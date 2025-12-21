@@ -160,6 +160,16 @@ CREATE TABLE public.ModelCache (
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT ModelCache_pkey PRIMARY KEY (model_id)
 );
+CREATE TABLE public.PasswordResetToken (
+  id integer NOT NULL DEFAULT nextval('"PasswordResetToken_id_seq"'::regclass),
+  user_id integer NOT NULL,
+  token character varying NOT NULL,
+  expires_at timestamp without time zone,
+  used boolean,
+  created_at timestamp without time zone,
+  CONSTRAINT PasswordResetToken_pkey PRIMARY KEY (id),
+  CONSTRAINT PasswordResetToken_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.User(user_id)
+);
 CREATE TABLE public.PlayHistory (
   listener_id uuid NOT NULL,
   track_id bigint NOT NULL,
@@ -218,25 +228,26 @@ CREATE TABLE public.StripeInvoice (
   CONSTRAINT StripeInvoice_pkey PRIMARY KEY (invoice_id),
   CONSTRAINT fk_stripe_account FOREIGN KEY (stripe_id) REFERENCES public.StripeAccount(stripe_id)
 );
-CREATE TABLE public.SubscriptionPlan (
-  plan_id integer NOT NULL DEFAULT nextval('"SubscriptionPlan_plan_id_seq"'::regclass),
-  name character varying NOT NULL UNIQUE,
-  price_usd numeric NOT NULL CHECK (price_usd >= 0::numeric),
-  feature_set jsonb,
-  CONSTRAINT SubscriptionPlan_pkey PRIMARY KEY (plan_id)
-);
 CREATE TABLE public.SubscriptionHistory (
-  id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
-  user_id bigint NOT NULL,
+  id integer NOT NULL DEFAULT nextval('"SubscriptionHistory_id_seq"'::regclass),
+  user_id integer NOT NULL,
   plan_id integer,
   plan_name character varying,
-  status character varying NOT NULL DEFAULT 'active',
+  status character varying NOT NULL,
   started_at timestamp with time zone NOT NULL DEFAULT now(),
   expires_at timestamp with time zone,
   canceled_at timestamp with time zone,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT SubscriptionHistory_pkey PRIMARY KEY (id),
-  CONSTRAINT fk_subscription_user FOREIGN KEY (user_id) REFERENCES public.User(user_id)
+  CONSTRAINT SubscriptionHistory_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.User(user_id)
+);
+CREATE TABLE public.SubscriptionPlan (
+  plan_id integer NOT NULL DEFAULT nextval('"SubscriptionPlan_plan_id_seq"'::regclass),
+  name character varying NOT NULL UNIQUE,
+  price_usd numeric NOT NULL CHECK (price_usd >= 0::numeric),
+  feature_set jsonb,
+  is_active boolean DEFAULT false,
+  CONSTRAINT SubscriptionPlan_pkey PRIMARY KEY (plan_id)
 );
 CREATE TABLE public.Track (
   track_id bigint NOT NULL DEFAULT nextval('"Track_track_id_seq"'::regclass),
@@ -276,7 +287,7 @@ CREATE TABLE public.User (
   email character varying NOT NULL UNIQUE CHECK (email::text ~* '^[^@]+@[^@]+\.[^@]+$'::text),
   password_hash character varying NOT NULL,
   country character NOT NULL CHECK (country ~ '^[A-Z]{2}$'::text),
-  role text NOT NULL CHECK (role = ANY (ARRAY['listener'::text, 'advertiser'::text])),
+  role text NOT NULL DEFAULT 'user'::text CHECK (role = ANY (ARRAY['user'::text, 'admin'::text])),
   first_name text NOT NULL,
   last_name text NOT NULL,
   status USER-DEFINED NOT NULL,
@@ -296,4 +307,183 @@ CREATE TABLE public.WorkComposer (
   CONSTRAINT WorkComposer_pkey PRIMARY KEY (work_id, artist_id),
   CONSTRAINT fk_work FOREIGN KEY (work_id) REFERENCES public.Work(work_id),
   CONSTRAINT fk_artist FOREIGN KEY (artist_id) REFERENCES public.Artist(artist_id)
+);
+CREATE TABLE public.competitor (
+  competitor_id bigint NOT NULL DEFAULT nextval('competitor_competitor_id_seq'::regclass),
+  name text NOT NULL UNIQUE,
+  website text,
+  notes text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT competitor_pkey PRIMARY KEY (competitor_id)
+);
+CREATE TABLE public.competitoradproduct (
+  competitor_ad_product_id bigint NOT NULL DEFAULT nextval('competitoradproduct_competitor_ad_product_id_seq'::regclass),
+  competitor_id bigint NOT NULL,
+  product_name text NOT NULL,
+  creative_type text CHECK (creative_type = ANY (ARRAY['audio'::text, 'video'::text, 'display'::text, 'other'::text])),
+  buying_model text NOT NULL CHECK (buying_model = ANY (ARRAY['CPM'::text, 'CPC'::text, 'CPV'::text, 'FLAT'::text, 'OTHER'::text])),
+  notes text,
+  CONSTRAINT competitoradproduct_pkey PRIMARY KEY (competitor_ad_product_id),
+  CONSTRAINT competitoradproduct_competitor_id_fkey FOREIGN KEY (competitor_id) REFERENCES public.competitor(competitor_id)
+);
+CREATE TABLE public.competitoradratesnapshot (
+  ad_rate_snapshot_id bigint NOT NULL DEFAULT nextval('competitoradratesnapshot_ad_rate_snapshot_id_seq'::regclass),
+  competitor_ad_product_id bigint NOT NULL,
+  observed_at timestamp with time zone NOT NULL DEFAULT now(),
+  country_code character,
+  currency_code character NOT NULL DEFAULT 'USD'::bpchar,
+  rate numeric NOT NULL CHECK (rate >= 0::numeric),
+  min_spend numeric CHECK (min_spend IS NULL OR min_spend >= 0::numeric),
+  targeting_notes text,
+  inventory_notes text,
+  source text,
+  source_url text,
+  CONSTRAINT competitoradratesnapshot_pkey PRIMARY KEY (ad_rate_snapshot_id),
+  CONSTRAINT competitoradratesnapshot_competitor_ad_product_id_fkey FOREIGN KEY (competitor_ad_product_id) REFERENCES public.competitoradproduct(competitor_ad_product_id)
+);
+CREATE TABLE public.competitorsubscriptionplan (
+  competitor_plan_id bigint NOT NULL DEFAULT nextval('competitorsubscriptionplan_competitor_plan_id_seq'::regclass),
+  competitor_id bigint NOT NULL,
+  plan_name text NOT NULL,
+  billing_period text NOT NULL CHECK (billing_period = ANY (ARRAY['monthly'::text, 'yearly'::text, 'weekly'::text, 'other'::text])),
+  is_student boolean NOT NULL DEFAULT false,
+  is_family boolean NOT NULL DEFAULT false,
+  max_accounts integer,
+  feature_set jsonb,
+  CONSTRAINT competitorsubscriptionplan_pkey PRIMARY KEY (competitor_plan_id),
+  CONSTRAINT competitorsubscriptionplan_competitor_id_fkey FOREIGN KEY (competitor_id) REFERENCES public.competitor(competitor_id)
+);
+CREATE TABLE public.competitorsubscriptionpricesnapshot (
+  snapshot_id bigint NOT NULL DEFAULT nextval('competitorsubscriptionpricesnapshot_snapshot_id_seq'::regclass),
+  competitor_plan_id bigint NOT NULL,
+  observed_at timestamp with time zone NOT NULL DEFAULT now(),
+  country_code character,
+  currency_code character NOT NULL DEFAULT 'USD'::bpchar,
+  price numeric NOT NULL CHECK (price >= 0::numeric),
+  promo_label text,
+  promo_price numeric CHECK (promo_price IS NULL OR promo_price >= 0::numeric),
+  promo_ends_at timestamp with time zone,
+  source text,
+  source_url text,
+  CONSTRAINT competitorsubscriptionpricesnapshot_pkey PRIMARY KEY (snapshot_id),
+  CONSTRAINT competitorsubscriptionpricesnapshot_competitor_plan_id_fkey FOREIGN KEY (competitor_plan_id) REFERENCES public.competitorsubscriptionplan(competitor_plan_id)
+);
+CREATE TABLE public.ods_track_search (
+  track_id bigint NOT NULL,
+  track_title text NOT NULL,
+  artist_names text NOT NULL,
+  album_titles text,
+  genre_names text,
+  duration_ms integer,
+  spotify_id text,
+  date_added timestamp with time zone,
+  popularity_score numeric DEFAULT 0,
+  search_tsv tsvector,
+  track_title_norm text,
+  artist_names_norm text,
+  album_titles_norm text,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT ods_track_search_pkey PRIMARY KEY (track_id)
+);
+CREATE TABLE public.priceexperiment (
+  experiment_id bigint NOT NULL DEFAULT nextval('priceexperiment_experiment_id_seq'::regclass),
+  name text NOT NULL,
+  plan_id integer NOT NULL,
+  country_code character,
+  status text NOT NULL DEFAULT 'draft'::text CHECK (status = ANY (ARRAY['draft'::text, 'running'::text, 'paused'::text, 'completed'::text, 'canceled'::text])),
+  start_at timestamp with time zone,
+  end_at timestamp with time zone,
+  control_price numeric NOT NULL CHECK (control_price >= 0::numeric),
+  variant_price numeric NOT NULL CHECK (variant_price >= 0::numeric),
+  created_by_user_id bigint,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  notes text,
+  CONSTRAINT priceexperiment_pkey PRIMARY KEY (experiment_id),
+  CONSTRAINT priceexperiment_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.SubscriptionPlan(plan_id),
+  CONSTRAINT priceexperiment_created_by_user_id_fkey FOREIGN KEY (created_by_user_id) REFERENCES public.User(user_id)
+);
+CREATE TABLE public.priceexperimentdailyresult (
+  experiment_id bigint NOT NULL,
+  result_date date NOT NULL,
+  arm text NOT NULL CHECK (arm = ANY (ARRAY['control'::text, 'variant'::text])),
+  exposures integer NOT NULL DEFAULT 0 CHECK (exposures >= 0),
+  conversions integer NOT NULL DEFAULT 0 CHECK (conversions >= 0),
+  cancellations integer NOT NULL DEFAULT 0 CHECK (cancellations >= 0),
+  revenue_usd numeric NOT NULL DEFAULT 0 CHECK (revenue_usd >= 0::numeric),
+  CONSTRAINT priceexperimentdailyresult_pkey PRIMARY KEY (experiment_id, result_date, arm),
+  CONSTRAINT priceexperimentdailyresult_experiment_id_fkey FOREIGN KEY (experiment_id) REFERENCES public.priceexperiment(experiment_id)
+);
+CREATE TABLE public.pricingdemandestimate (
+  estimate_id bigint NOT NULL DEFAULT nextval('pricingdemandestimate_estimate_id_seq'::regclass),
+  run_id bigint NOT NULL,
+  plan_id integer NOT NULL,
+  country_code character,
+  price_elasticity numeric,
+  baseline_conversion_rate numeric CHECK (baseline_conversion_rate IS NULL OR baseline_conversion_rate >= 0::numeric),
+  baseline_churn_rate numeric CHECK (baseline_churn_rate IS NULL OR baseline_churn_rate >= 0::numeric),
+  confidence numeric CHECK (confidence IS NULL OR confidence >= 0::numeric AND confidence <= 1::numeric),
+  details jsonb NOT NULL DEFAULT '{}'::jsonb,
+  CONSTRAINT pricingdemandestimate_pkey PRIMARY KEY (estimate_id),
+  CONSTRAINT pricingdemandestimate_run_id_fkey FOREIGN KEY (run_id) REFERENCES public.pricingmodelrun(run_id),
+  CONSTRAINT pricingdemandestimate_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.SubscriptionPlan(plan_id)
+);
+CREATE TABLE public.pricingmodelrun (
+  run_id bigint NOT NULL DEFAULT nextval('pricingmodelrun_run_id_seq'::regclass),
+  model_name text NOT NULL,
+  model_version text NOT NULL,
+  run_started_at timestamp with time zone NOT NULL DEFAULT now(),
+  run_finished_at timestamp with time zone,
+  training_window_start date,
+  training_window_end date,
+  notes text,
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+  CONSTRAINT pricingmodelrun_pkey PRIMARY KEY (run_id)
+);
+CREATE TABLE public.pricingrecommendation (
+  recommendation_id bigint NOT NULL DEFAULT nextval('pricingrecommendation_recommendation_id_seq'::regclass),
+  run_id bigint NOT NULL,
+  plan_id integer NOT NULL,
+  country_code character,
+  currency_code character NOT NULL DEFAULT 'USD'::bpchar,
+  current_price numeric CHECK (current_price IS NULL OR current_price >= 0::numeric),
+  recommended_price numeric NOT NULL CHECK (recommended_price >= 0::numeric),
+  predicted_delta_revenue_usd numeric,
+  predicted_delta_churn numeric,
+  predicted_delta_new_subscribers numeric,
+  recommendation_reason text,
+  confidence numeric CHECK (confidence IS NULL OR confidence >= 0::numeric AND confidence <= 1::numeric),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT pricingrecommendation_pkey PRIMARY KEY (recommendation_id),
+  CONSTRAINT pricingrecommendation_run_id_fkey FOREIGN KEY (run_id) REFERENCES public.pricingmodelrun(run_id),
+  CONSTRAINT pricingrecommendation_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.SubscriptionPlan(plan_id)
+);
+CREATE TABLE public.subscriptionmetricsdaily (
+  metric_date date NOT NULL,
+  plan_id integer NOT NULL,
+  country_code character NOT NULL,
+  active_subscribers integer NOT NULL DEFAULT 0 CHECK (active_subscribers >= 0),
+  new_subscribers integer NOT NULL DEFAULT 0 CHECK (new_subscribers >= 0),
+  cancellations integer NOT NULL DEFAULT 0 CHECK (cancellations >= 0),
+  gross_revenue_usd numeric NOT NULL DEFAULT 0 CHECK (gross_revenue_usd >= 0::numeric),
+  refunds_usd numeric NOT NULL DEFAULT 0 CHECK (refunds_usd >= 0::numeric),
+  trials_started integer NOT NULL DEFAULT 0 CHECK (trials_started >= 0),
+  trials_converted integer NOT NULL DEFAULT 0 CHECK (trials_converted >= 0),
+  CONSTRAINT subscriptionmetricsdaily_pkey PRIMARY KEY (metric_date, plan_id, country_code),
+  CONSTRAINT subscriptionmetricsdaily_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.SubscriptionPlan(plan_id)
+);
+CREATE TABLE public.subscriptionplanprice (
+  plan_price_id bigint NOT NULL DEFAULT nextval('subscriptionplanprice_plan_price_id_seq'::regclass),
+  plan_id integer NOT NULL,
+  currency_code character NOT NULL DEFAULT 'USD'::bpchar,
+  country_code character,
+  price numeric NOT NULL CHECK (price >= 0::numeric),
+  effective_from timestamp with time zone NOT NULL DEFAULT now(),
+  effective_to timestamp with time zone,
+  changed_by_user_id bigint,
+  change_reason text,
+  price_range tstzrange DEFAULT tstzrange(effective_from, COALESCE(effective_to, 'infinity'::timestamp with time zone)),
+  CONSTRAINT subscriptionplanprice_pkey PRIMARY KEY (plan_price_id),
+  CONSTRAINT subscriptionplanprice_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.SubscriptionPlan(plan_id),
+  CONSTRAINT subscriptionplanprice_changed_by_user_id_fkey FOREIGN KEY (changed_by_user_id) REFERENCES public.User(user_id)
 );
