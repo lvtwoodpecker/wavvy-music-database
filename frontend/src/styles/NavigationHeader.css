@@ -13,7 +13,7 @@
   align-items: center;
   padding: 0 24px;
   gap: 16px;
-  z-index: 1000;
+  z-index: 9998;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   overflow-x: auto;
   overflow-y: visible;
