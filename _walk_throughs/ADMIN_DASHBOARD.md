@@ -1,5 +1,11 @@
 ## Admin Dashboard (Wavvy)
 
+
+
+https://github.com/user-attachments/assets/dc94355f-d2b6-4338-9401-364fa43ace15
+
+
+
 The **Admin Dashboard** is the control center for managing Wavvy’s business + platform operations. It’s a React page (`src/pages/AdminDashboard.jsx`) that lets admins monitor trends, review competitive context, and take action (pricing + user management) from one place.
 
 ### What it does
