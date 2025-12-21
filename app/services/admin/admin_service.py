@@ -15,6 +15,7 @@ from app.models.CompetitorSubscriptionPlan import CompetitorSubscriptionPlan
 from app.models.CompetitorSubscriptionPriceSnapshot import CompetitorSubscriptionPriceSnapshot
 from app.models.Track import Track
 from app.models.PlayHistory import PlayHistory
+from sqlalchemy.orm import selectinload
 
 SessionFactory = Callable[[], Session]
 
@@ -42,33 +43,34 @@ class AdminService(service.Service):
     # --- Pricing Operations ---
 
     def get_pricing_trends(self) -> List[Dict[str, Any]]:
-        """Get subscription pricing trends with history."""
         db = self.db_session_factory()
         try:
-            plans = db.query(SubscriptionPlan).all()
-            
+            plans = (
+                db.query(SubscriptionPlan)
+                .filter(SubscriptionPlan.is_active == True)
+                .options(selectinload(SubscriptionPlan.prices))
+                .all()
+            )
+
             pricing_data = []
             for plan in plans:
-                price_history = db.query(SubscriptionPlanPrice)\
-                    .filter(SubscriptionPlanPrice.plan_id == plan.plan_id)\
-                    .order_by(SubscriptionPlanPrice.effective_from.desc())\
-                    .all()
-                
+                history_rows = list(plan.prices or [])
+                current = history_rows[0] if history_rows else None
+
                 pricing_data.append({
                     "plan_id": plan.plan_id,
-                    "plan_name": plan.name,
-                    "current_price": float(plan.price_usd),
-                    "feature_set": plan.feature_set,
-                    "price_history": [
+                    "plan_name": getattr(plan, "name", None),
+                    "current_price": float(current.price) if current else None,
+                    "history": [
                         {
-                            "price": float(ph.price),
-                            "effective_from": ph.effective_from.isoformat() if ph.effective_from else None,
-                            "changed_by": ph.changed_by_user_id
+                            # "price_id": h.price_id,
+                            "price": float(h.price),
+                            "effective_from": h.effective_from.isoformat() if h.effective_from else None,
                         }
-                        for ph in price_history
-                    ]
+                        for h in history_rows
+                    ],
                 })
-            
+
             return pricing_data
         finally:
             db.close()

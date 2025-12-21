@@ -1,6 +1,9 @@
 from app.models.User import User
 from app.models. Advertiser import Advertiser
 from app.models. Listener import Listener
+from app.models.User import User
+from app.models. Advertiser import Advertiser
+from app.models. Listener import Listener
 from app.models.StripeAccount import StripeAccount
 from app.models.Track import Track
 from app.models. Competitor import Competitor
