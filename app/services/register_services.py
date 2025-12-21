@@ -3,6 +3,7 @@ from app.services.stripe.stripe_service import StripeService
 from app.services.playlist.playlist_service import PlaylistService
 from app.services.library.library_service import LibraryService
 from app.services.search.search_service import SearchService
+from app.services.pricing.pricing_service import PricingService
 
 
 class APIServices:
@@ -29,6 +30,7 @@ class APIServices:
         self._playlist_service = PlaylistService(app)
         self._library_service = LibraryService(app)
         self._search_service = SearchService(app)
+        self._pricing_service = PricingService(app)
     
     @property
     def user_service(self) -> UserService:
@@ -50,9 +52,15 @@ class APIServices:
     def search_service(self) -> SearchService:
         return self._search_service
     
+    @property
+    def pricing_service(self) -> PricingService:
+        return self._pricing_service
+    
     def create_services(self):
         self._stripe_service.create_service()
         self._user_service.create_service()
         self._playlist_service.create_service()
         self._library_service.create_service()
         self._search_service.create_service()
+        self._pricing_service.create_service()
+        

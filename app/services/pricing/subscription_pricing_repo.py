@@ -14,11 +14,8 @@ SessionFactory = Callable[[], Session]
 
 
 class SubscriptionPricingRepo:
-    def __init__(self, db_session_factory: SessionFactory) -> None:
-        self._db_session_factory = db_session_factory
-        
-    def _get_session(self) -> Session:
-        return self._db_session_factory()    
+    def __init__(self, session: Session) -> None:
+        self.session = session
     
     def get_current_price_row(self, key: PriceKey) -> Optional[SubscriptionPlanPrice]:
         """
@@ -43,7 +40,7 @@ class SubscriptionPricingRepo:
             .order_by(desc(SubscriptionPlanPrice.effective_from))
             .limit(1)
         )
-        return self._get_session().execute(stmt).scalar_one_or_none()
+        return self.session.execute(stmt).scalar_one_or_none()
 
     def get_price_history(self, key: PriceKey, limit: int = 100) -> Sequence[SubscriptionPlanPrice]:
         stmt = (
@@ -57,7 +54,7 @@ class SubscriptionPricingRepo:
             .order_by(desc(SubscriptionPlanPrice.effective_from))
             .limit(limit)
         )
-        return self._get_session().execute(stmt).scalars().all()
+        return self.session.execute(stmt).scalars().all()
 
     def insert_new_price(
         self,
@@ -83,5 +80,5 @@ class SubscriptionPricingRepo:
             changed_by_user_id=changed_by_user_id,
             change_reason=change_reason,
         )
-        self._get_session().add(row)
+        self.session.add(row)
         return row
