@@ -8,3 +8,8 @@ instance/
 .DS_Store
 /models/
 *.pkl
+venv/
+node_modules/
+dist/
+build/
+*.egg-info/
