@@ -47,6 +47,7 @@ class AdminService(service.Service):
         try:
             plans = (
                 db.query(SubscriptionPlan)
+                .filter(SubscriptionPlan.is_active == True)
                 .options(selectinload(SubscriptionPlan.prices))
                 .all()
             )
