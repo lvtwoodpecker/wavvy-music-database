@@ -13,10 +13,11 @@ class StripeAccount(Base):
         BigInteger,
         ForeignKey("public.User.user_id", ondelete="CASCADE"),
         nullable=False,
+        unique=True,
     )
 
     is_default = Column(Boolean, default=True, nullable=False)
-    stripe_customer_id = Column(Text, nullable=False)
+    stripe_customer_id = Column(Text, nullable=False, unique=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     user = relationship("User", back_populates="stripe_account")

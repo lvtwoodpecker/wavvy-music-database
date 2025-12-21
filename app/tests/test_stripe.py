@@ -2,6 +2,7 @@
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 from app.services.stripe.create_stripe_account import StripeAccountService
+from app.services.stripe.checkout import StripeCheckoutService
 from app.models.StripeAccount import StripeAccount
 
 
@@ -152,3 +153,111 @@ def test_stripe_customer_id_uniqueness():
     stripe_customer_id_column = StripeAccount.__table__.columns.get('stripe_customer_id')
     assert stripe_customer_id_column is not None
     assert stripe_customer_id_column.unique == True
+
+
+class TestStripeCheckoutService:
+    """Test StripeCheckoutService methods."""
+    
+    @pytest.fixture
+    def mock_db_session(self):
+        """Create a mock database session."""
+        session = Mock()
+        session.query = Mock()
+        session.close = Mock()
+        return session
+    
+    @pytest.fixture
+    def mock_session_factory(self, mock_db_session):
+        """Create a mock session factory."""
+        return lambda: mock_db_session
+    
+    @pytest.fixture
+    def checkout_service(self, mock_session_factory):
+        """Create StripeCheckoutService with mock dependencies."""
+        return StripeCheckoutService(
+            stripe_api_key="sk_test_fake_key",
+            front_end_url="http://localhost:5173",
+            db_session_factory=mock_session_factory
+        )
+    
+    def test_checkout_requires_connected_account(self, checkout_service, mock_db_session):
+        """Test that checkout requires a connected Stripe account by default."""
+        # Mock no existing account
+        mock_query = Mock()
+        mock_query.filter.return_value.first.return_value = None
+        mock_db_session.query.return_value = mock_query
+        
+        # Should raise ValueError when user doesn't have connected account
+        with pytest.raises(ValueError) as exc_info:
+            checkout_service.create_checkout_session(
+                user_id=123,
+                amount_cents=999,
+                payment_for="Premium Subscription"
+            )
+        
+        assert "connect a Stripe account" in str(exc_info.value)
+        mock_db_session.close.assert_called_once()
+    
+    @patch('app.services.stripe.checkout.stripe.checkout.Session.create')
+    def test_checkout_with_connected_account(self, mock_stripe_create, checkout_service, mock_db_session):
+        """Test that checkout works when user has connected Stripe account."""
+        # Mock existing account
+        mock_account = Mock()
+        mock_account.stripe_customer_id = "cus_test123"
+        
+        mock_query = Mock()
+        mock_query.filter.return_value.first.return_value = mock_account
+        mock_db_session.query.return_value = mock_query
+        
+        # Mock Stripe session creation
+        mock_session = Mock()
+        mock_session.url = "https://checkout.stripe.com/test"
+        mock_session.id = "cs_test123"
+        mock_stripe_create.return_value = mock_session
+        
+        # Call method
+        result = checkout_service.create_checkout_session(
+            user_id=123,
+            amount_cents=999,
+            payment_for="Premium Subscription"
+        )
+        
+        # Assertions
+        assert result["checkout_url"] == "https://checkout.stripe.com/test"
+        assert result["session_id"] == "cs_test123"
+        
+        # Verify Stripe was called with customer ID
+        call_args = mock_stripe_create.call_args
+        assert call_args[1]["customer"] == "cus_test123"
+        mock_db_session.close.assert_called_once()
+    
+    @patch('app.services.stripe.checkout.stripe.checkout.Session.create')
+    def test_checkout_without_requirement(self, mock_stripe_create, checkout_service, mock_db_session):
+        """Test that checkout can work without connected account when not required."""
+        # Mock no existing account
+        mock_query = Mock()
+        mock_query.filter.return_value.first.return_value = None
+        mock_db_session.query.return_value = mock_query
+        
+        # Mock Stripe session creation
+        mock_session = Mock()
+        mock_session.url = "https://checkout.stripe.com/test"
+        mock_session.id = "cs_test123"
+        mock_stripe_create.return_value = mock_session
+        
+        # Call method with require_connected_account=False
+        result = checkout_service.create_checkout_session(
+            user_id=123,
+            amount_cents=999,
+            payment_for="Premium Subscription",
+            require_connected_account=False
+        )
+        
+        # Assertions
+        assert result["checkout_url"] == "https://checkout.stripe.com/test"
+        assert result["session_id"] == "cs_test123"
+        
+        # Verify Stripe was called without customer ID
+        call_args = mock_stripe_create.call_args
+        assert "customer" not in call_args[1]
+        mock_db_session.close.assert_called_once()
