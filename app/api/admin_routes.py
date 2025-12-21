@@ -277,8 +277,12 @@ class AdminRoutes(base_routes.BaseRoutes):
                     db.close()
                     return jsonify({"error": "Plan not found"}), 404
                 
+                # Get user_id from JWT payload
+                email = request.current_user.get('email')
+                user = db.query(User).filter(User.email == email).first()
+                user_id = user.user_id if user else None
+                
                 # Create price history entry
-                user_id = request.current_user.get('user_id')
                 price_history = SubscriptionPlanPrice(
                     plan_id=plan_id,
                     price=Decimal(str(new_price)),
