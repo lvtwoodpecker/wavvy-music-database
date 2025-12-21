@@ -71,7 +71,7 @@ function SearchBar() {
     // Convert search result to track format expected by player
     const playerTrack = {
       id: track.track_id,
-      title: track.track_title,
+      title: track.title,
       artist: track.artist_names,
       album: track.album_titles,
       audio_url: track.audio_file_url,
@@ -171,7 +171,7 @@ function SearchBar() {
                   onClick={() => handlePlayTrack(track)}
                 >
                   <div className="result-info">
-                    <div className="result-title">{track.track_title}</div>
+                    <div className="result-title">{track.title}</div>
                     <div className="result-meta">
                       {track.artist_names && <span className="result-artist">{track.artist_names}</span>}
                       {track.artist_names && track.album_titles && <span className="result-separator">•</span>}
@@ -183,7 +183,7 @@ function SearchBar() {
                     {track.audio_file_url ? (
                       <button
                         className="result-play-btn"
-                        aria-label={`Play ${track.track_title}`}
+                        aria-label={`Play ${track.title}`}
                         onClick={() => playTrack(track.audio_file_url)}
                       >
                         <span className="play-icon" />
@@ -191,7 +191,7 @@ function SearchBar() {
                     ) : (
                       <button
                         className="result-play-btn disabled"
-                        aria-label={`No audio available for ${track.track_title}`}
+                        aria-label={`No audio available for ${track.title}`}
                         disabled
                       >
                         <span className="play-icon disabled" />
