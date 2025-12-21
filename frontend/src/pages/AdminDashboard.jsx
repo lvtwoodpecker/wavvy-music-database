@@ -11,7 +11,7 @@ function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('pricing');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+
   // State for different sections
   const [pricingTrends, setPricingTrends] = useState([]);
   const [pricingRollups, setPricingRollups] = useState({
@@ -27,17 +27,38 @@ function AdminDashboard() {
   const [revenueAnalytics, setRevenueAnalytics] = useState(null);
   const [platformStats, setPlatformStats] = useState(null);
   const [userActivity, setUserActivity] = useState(null);
-  
+
+  // ✅ Hooks MUST be top-level: compute max values here (never inside render helpers)
+  const maxRevenue = useMemo(() => {
+    if (!revenueAnalytics?.revenue_trend?.length) return 0;
+    return Math.max(...revenueAnalytics.revenue_trend.map(d => d.revenue));
+  }, [revenueAnalytics]);
+
+  const maxUsers = useMemo(() => {
+    if (!platformStats?.user_growth?.length) return 0;
+    return Math.max(...platformStats.user_growth.map(d => d.users));
+  }, [platformStats]);
+
+  const maxPeakUsers = useMemo(() => {
+    if (!userActivity?.peak_hours?.length) return 0;
+    return Math.max(...userActivity.peak_hours.map(d => d.users));
+  }, [userActivity]);
+
+  const maxDailyPlays = useMemo(() => {
+    if (!musicAnalytics?.plays_by_date?.length) return 0;
+    return Math.max(...musicAnalytics.plays_by_date.map(d => d.play_count));
+  }, [musicAnalytics]);
+
   // Fetch data based on active tab
   useEffect(() => {
     fetchTabData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, usersPagination.page]);
 
   const fetchTabData = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       switch (activeTab) {
         case 'pricing':
@@ -64,9 +85,11 @@ function AdminDashboard() {
         case 'activity':
           await fetchUserActivity();
           break;
+        default:
+          break;
       }
     } catch (err) {
-      setError(err.message);
+      setError(err?.message || 'Unknown error');
     } finally {
       setLoading(false);
     }
@@ -74,31 +97,27 @@ function AdminDashboard() {
 
   const fetchPricingTrends = async () => {
     const qs = new URLSearchParams({
-      granularity: "monthly",
-      include_series: "true",
-      include_rollups: "true",
+      granularity: 'monthly',
+      include_series: 'true',
+      include_rollups: 'true',
     }).toString();
 
-    const response = await fetch(
-      `${API_BASE_URL}/api/admin/pricing-trends?${qs}`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    const response = await fetch(`${API_BASE_URL}/api/admin/pricing-trends?${qs}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-    if (!response.ok) throw new Error("Failed to fetch pricing trends");
+    if (!response.ok) throw new Error('Failed to fetch pricing trends');
 
     const data = await response.json();
-
-    // NEW SHAPE: pricing_trends = { plans: [...], rollups: {...} }
     const payload = data.pricing_trends || { plans: [], rollups: null };
 
     setPricingTrends(payload.plans || []);
-    setPricingRollups(payload.rollups || null); // add a state var for rollups
+    setPricingRollups(payload.rollups || null);
   };
-
 
   const fetchCompetitors = async () => {
     const response = await fetch(`${API_BASE_URL}/api/admin/competitor-data`, {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` },
     });
     if (!response.ok) throw new Error('Failed to fetch competitor data');
     const data = await response.json();
@@ -107,7 +126,7 @@ function AdminDashboard() {
 
   const fetchMusicAnalytics = async () => {
     const response = await fetch(`${API_BASE_URL}/api/admin/music-analytics`, {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` },
     });
     if (!response.ok) throw new Error('Failed to fetch music analytics');
     const data = await response.json();
@@ -116,7 +135,7 @@ function AdminDashboard() {
 
   const fetchMLAnalysis = async () => {
     const response = await fetch(`${API_BASE_URL}/api/admin/ml-price-analysis`, {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` },
     });
     if (!response.ok) throw new Error('Failed to fetch ML analysis');
     const data = await response.json();
@@ -126,36 +145,35 @@ function AdminDashboard() {
   const fetchUsers = async () => {
     const response = await fetch(
       `${API_BASE_URL}/api/admin/users?page=${usersPagination.page}&per_page=${usersPagination.per_page}`,
-      { headers: { 'Authorization': `Bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` } }
     );
     if (!response.ok) throw new Error('Failed to fetch users');
     const data = await response.json();
     setUsers(data.users || []);
-    setUsersPagination({ ...usersPagination, ...data.pagination });
+    setUsersPagination(prev => ({ ...prev, ...data.pagination }));
   };
 
   const fetchRevenueAnalytics = async () => {
     // Mock data for demonstration - in production, this would be a real API endpoint
-    // This shows what kind of revenue analytics would be useful
     const mockRevenue = {
-      total_revenue: 125430.50,
-      monthly_recurring_revenue: 15678.90,
-      annual_recurring_revenue: 188146.80,
+      total_revenue: 125430.5,
+      monthly_recurring_revenue: 15678.9,
+      annual_recurring_revenue: 188146.8,
       revenue_by_plan: [
-        { plan_name: 'Basic', revenue: 35670.20, subscribers: 1234 },
-        { plan_name: 'Premium', revenue: 67890.50, subscribers: 678 },
-        { plan_name: 'Family', revenue: 21870.80, subscribers: 234 }
+        { plan_name: 'Basic', revenue: 35670.2, subscribers: 1234 },
+        { plan_name: 'Premium', revenue: 67890.5, subscribers: 678 },
+        { plan_name: 'Family', revenue: 21870.8, subscribers: 234 },
       ],
       revenue_trend: [
-        { month: 'Jan', revenue: 10234.50 },
-        { month: 'Feb', revenue: 11456.80 },
-        { month: 'Mar', revenue: 12890.40 },
-        { month: 'Apr', revenue: 13670.20 },
-        { month: 'May', revenue: 14567.30 },
-        { month: 'Jun', revenue: 15678.90 }
+        { month: 'Jan', revenue: 10234.5 },
+        { month: 'Feb', revenue: 11456.8 },
+        { month: 'Mar', revenue: 12890.4 },
+        { month: 'Apr', revenue: 13670.2 },
+        { month: 'May', revenue: 14567.3 },
+        { month: 'Jun', revenue: 15678.9 },
       ],
       churn_rate: 2.3,
-      growth_rate: 8.5
+      growth_rate: 8.5,
     };
     setRevenueAnalytics(mockRevenue);
   };
@@ -178,8 +196,8 @@ function AdminDashboard() {
         { month: 'Mar', users: 4789 },
         { month: 'Apr', users: 5012 },
         { month: 'May', users: 5234 },
-        { month: 'Jun', users: 5432 }
-      ]
+        { month: 'Jun', users: 5432 },
+      ],
     };
     setPlatformStats(mockStats);
   };
@@ -196,19 +214,19 @@ function AdminDashboard() {
         { hour: '6 AM', users: 234 },
         { hour: '12 PM', users: 678 },
         { hour: '6 PM', users: 1234 },
-        { hour: '9 PM', users: 1089 }
+        { hour: '9 PM', users: 1089 },
       ],
       top_features: [
         { feature: 'Music Streaming', usage: 89.5 },
         { feature: 'Playlists', usage: 67.8 },
         { feature: 'Search', usage: 54.3 },
-        { feature: 'Recommendations', usage: 42.1 }
+        { feature: 'Recommendations', usage: 42.1 },
       ],
       retention_rate: {
         day_1: 85.2,
         day_7: 62.4,
-        day_30: 45.8
-      }
+        day_30: 45.8,
+      },
     };
     setUserActivity(mockActivity);
   };
@@ -218,18 +236,18 @@ function AdminDashboard() {
       const response = await fetch(`${API_BASE_URL}/api/admin/update-price`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ plan_id: planId, new_price: parseFloat(newPrice) })
+        body: JSON.stringify({ plan_id: planId, new_price: parseFloat(newPrice) }),
       });
-      
+
       if (!response.ok) throw new Error('Failed to update price');
-      
+
       alert('Price updated successfully');
       await fetchPricingTrends();
     } catch (err) {
-      alert(`Error: ${err.message}`);
+      alert(`Error: ${err?.message || 'Unknown error'}`);
     }
   };
 
@@ -238,18 +256,18 @@ function AdminDashboard() {
       const response = await fetch(`${API_BASE_URL}/api/admin/update-user-status`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ user_id: userId, status })
+        body: JSON.stringify({ user_id: userId, status }),
       });
-      
+
       if (!response.ok) throw new Error('Failed to update user status');
-      
+
       alert('User status updated successfully');
       await fetchUsers();
     } catch (err) {
-      alert(`Error: ${err.message}`);
+      alert(`Error: ${err?.message || 'Unknown error'}`);
     }
   };
 
@@ -258,18 +276,18 @@ function AdminDashboard() {
       const response = await fetch(`${API_BASE_URL}/api/admin/update-user-role`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ user_id: userId, role })
+        body: JSON.stringify({ user_id: userId, role }),
       });
-      
+
       if (!response.ok) throw new Error('Failed to update user role');
-      
+
       alert('User role updated successfully');
       await fetchUsers();
     } catch (err) {
-      alert(`Error: ${err.message}`);
+      alert(`Error: ${err?.message || 'Unknown error'}`);
     }
   };
 
@@ -279,22 +297,23 @@ function AdminDashboard() {
 
       {pricingRollups && (
         <div className="pricing-rollups">
-          <div><strong>Active Plans:</strong> {pricingRollups.active_plans}</div>
-          <div><strong>Total Changes:</strong> {pricingRollups.total_price_changes}</div>
-          <div><strong>Avg Current Price:</strong> ${pricingRollups.avg_current_price?.toFixed(2)}</div>
+          <div>
+            <strong>Active Plans:</strong> {pricingRollups.active_plans}
+          </div>
+          <div>
+            <strong>Total Changes:</strong> {pricingRollups.total_price_changes}
+          </div>
+          <div>
+            <strong>Avg Current Price:</strong> ${pricingRollups.avg_current_price?.toFixed(2)}
+          </div>
         </div>
       )}
 
-      {pricingTrends.map((plan) => (
-        <PricingCard
-          key={plan.plan_id}
-          plan={plan}
-          onUpdatePrice={updatePrice}
-        />
+      {pricingTrends.map(plan => (
+        <PricingCard key={plan.plan_id} plan={plan} onUpdatePrice={updatePrice} />
       ))}
     </div>
   );
-
 
   const renderCompetitorsSection = () => (
     <div className="admin-section">
@@ -338,7 +357,7 @@ function AdminDashboard() {
             <span>Total Tracks:</span>
             <strong>{musicAnalytics.total_tracks}</strong>
           </div>
-          
+
           <div className="top-tracks">
             <h3>Top 10 Most Played Tracks</h3>
             <table>
@@ -360,20 +379,22 @@ function AdminDashboard() {
               </tbody>
             </table>
           </div>
-          
+
           <div className="plays-chart">
             <h3>Plays Over Time (Last 30 Days)</h3>
             <div className="simple-chart">
               {musicAnalytics.plays_by_date.map((day, idx) => (
                 <div key={idx} className="chart-bar">
-                  <div className="bar-label">{new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+                  <div className="bar-label">
+                    {new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </div>
                   <div className="bar-container">
-                    <div 
-                      className="bar-fill" 
-                      style={{ 
-                        width: `${Math.min(100, (day.play_count / Math.max(...musicAnalytics.plays_by_date.map(d => d.play_count))) * 100)}%` 
+                    <div
+                      className="bar-fill"
+                      style={{
+                        width: `${maxDailyPlays ? Math.min(100, (day.play_count / maxDailyPlays) * 100) : 0}%`,
                       }}
-                    ></div>
+                    />
                   </div>
                   <div className="bar-value">{day.play_count}</div>
                 </div>
@@ -388,9 +409,7 @@ function AdminDashboard() {
   const renderMLAnalysisSection = () => (
     <div className="admin-section">
       <h2>ML Price Recommendations</h2>
-      <p className="section-description">
-        AI-powered pricing analysis based on competitor data and market trends
-      </p>
+      <p className="section-description">AI-powered pricing analysis based on competitor data and market trends</p>
       {mlAnalysis.map((rec, idx) => (
         <div key={idx} className={`ml-recommendation ${rec.recommendation}`}>
           <h3>{rec.plan_name}</h3>
@@ -411,7 +430,7 @@ function AdminDashboard() {
           <div className={`recommendation-badge ${rec.recommendation}`}>
             {rec.recommendation === 'increase' && '↑ '}
             {rec.recommendation === 'decrease' && '↓ '}
-            {rec.recommendation.toUpperCase()}
+            {String(rec.recommendation).toUpperCase()}
             {rec.price_diff !== 0 && ` (${rec.price_diff > 0 ? '+' : ''}$${rec.price_diff})`}
           </div>
         </div>
@@ -449,7 +468,7 @@ function AdminDashboard() {
                 <td className="actions-cell">
                   <select
                     value={user.status}
-                    onChange={(e) => updateUserStatus(user.user_id, e.target.value)}
+                    onChange={e => updateUserStatus(user.user_id, e.target.value)}
                     className="action-select"
                   >
                     <option value="active">Active</option>
@@ -458,7 +477,7 @@ function AdminDashboard() {
                   </select>
                   <select
                     value={user.role}
-                    onChange={(e) => updateUserRole(user.user_id, e.target.value)}
+                    onChange={e => updateUserRole(user.user_id, e.target.value)}
                     className="action-select"
                   >
                     <option value="user">User</option>
@@ -470,18 +489,20 @@ function AdminDashboard() {
           </tbody>
         </table>
       </div>
-      
+
       <div className="pagination">
         <button
           disabled={usersPagination.page === 1}
-          onClick={() => setUsersPagination({ ...usersPagination, page: usersPagination.page - 1 })}
+          onClick={() => setUsersPagination(prev => ({ ...prev, page: prev.page - 1 }))}
         >
           Previous
         </button>
-        <span>Page {usersPagination.page} of {usersPagination.total_pages}</span>
+        <span>
+          Page {usersPagination.page} of {usersPagination.total_pages}
+        </span>
         <button
-          disabled={usersPagination.page >= usersPagination.total_pages}
-          onClick={() => setUsersPagination({ ...usersPagination, page: usersPagination.page + 1 })}
+          disabled={usersPagination.page >= (usersPagination.total_pages || 1)}
+          onClick={() => setUsersPagination(prev => ({ ...prev, page: prev.page + 1 }))}
         >
           Next
         </button>
@@ -491,232 +512,214 @@ function AdminDashboard() {
 
   const renderRevenueSection = () => {
     if (!revenueAnalytics) return null;
-    
-    const maxRevenue = useMemo(
-      () => Math.max(...revenueAnalytics.revenue_trend.map(d => d.revenue)),
-      [revenueAnalytics.revenue_trend]
-    );
 
     return (
       <div className="admin-section">
         <h2>Revenue Analytics</h2>
-        <>
-          <div className="stats-grid">
-            <div className="stat-card">
-              <h3>Total Revenue</h3>
-              <div className="stat-value">${revenueAnalytics.total_revenue.toLocaleString()}</div>
-            </div>
-            <div className="stat-card">
-              <h3>MRR</h3>
-              <div className="stat-value">${revenueAnalytics.monthly_recurring_revenue.toLocaleString()}</div>
-              <div className="stat-label">Monthly Recurring Revenue</div>
-            </div>
-            <div className="stat-card">
-              <h3>ARR</h3>
-              <div className="stat-value">${revenueAnalytics.annual_recurring_revenue.toLocaleString()}</div>
-              <div className="stat-label">Annual Recurring Revenue</div>
-            </div>
-            <div className="stat-card">
-              <h3>Growth Rate</h3>
-              <div className="stat-value positive">{revenueAnalytics.growth_rate}%</div>
-            </div>
-          </div>
 
-          <div className="revenue-by-plan">
-            <h3>Revenue by Subscription Plan</h3>
-            <div className="plan-revenue-grid">
-              {revenueAnalytics.revenue_by_plan.map((plan, idx) => (
-                <div key={idx} className="plan-revenue-card">
-                  <h4>{plan.plan_name}</h4>
-                  <div className="revenue-amount">${plan.revenue.toLocaleString()}</div>
-                  <div className="subscriber-count">{plan.subscribers} subscribers</div>
+        <div className="stats-grid">
+          <div className="stat-card">
+            <h3>Total Revenue</h3>
+            <div className="stat-value">${revenueAnalytics.total_revenue.toLocaleString()}</div>
+          </div>
+          <div className="stat-card">
+            <h3>MRR</h3>
+            <div className="stat-value">${revenueAnalytics.monthly_recurring_revenue.toLocaleString()}</div>
+            <div className="stat-label">Monthly Recurring Revenue</div>
+          </div>
+          <div className="stat-card">
+            <h3>ARR</h3>
+            <div className="stat-value">${revenueAnalytics.annual_recurring_revenue.toLocaleString()}</div>
+            <div className="stat-label">Annual Recurring Revenue</div>
+          </div>
+          <div className="stat-card">
+            <h3>Growth Rate</h3>
+            <div className="stat-value positive">{revenueAnalytics.growth_rate}%</div>
+          </div>
+        </div>
+
+        <div className="revenue-by-plan">
+          <h3>Revenue by Subscription Plan</h3>
+          <div className="plan-revenue-grid">
+            {revenueAnalytics.revenue_by_plan.map((plan, idx) => (
+              <div key={idx} className="plan-revenue-card">
+                <h4>{plan.plan_name}</h4>
+                <div className="revenue-amount">${plan.revenue.toLocaleString()}</div>
+                <div className="subscriber-count">{plan.subscribers} subscribers</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="revenue-trend-section">
+          <h3>Revenue Trend (Last 6 Months)</h3>
+          <div className="simple-chart">
+            {revenueAnalytics.revenue_trend.map((item, idx) => (
+              <div key={idx} className="chart-bar">
+                <div className="bar-label">{item.month}</div>
+                <div className="bar-container">
+                  <div
+                    className="bar-fill revenue-bar"
+                    style={{ width: `${maxRevenue ? (item.revenue / maxRevenue) * 100 : 0}%` }}
+                  />
                 </div>
-              ))}
-            </div>
+                <div className="bar-value">${(item.revenue / 1000).toFixed(1)}k</div>
+              </div>
+            ))}
           </div>
+        </div>
 
-          <div className="revenue-trend-section">
-            <h3>Revenue Trend (Last 6 Months)</h3>
-            <div className="simple-chart">
-              {revenueAnalytics.revenue_trend.map((item, idx) => (
-                <div key={idx} className="chart-bar">
-                  <div className="bar-label">{item.month}</div>
-                  <div className="bar-container">
-                    <div 
-                      className="bar-fill revenue-bar" 
-                      style={{ width: `${(item.revenue / maxRevenue) * 100}%` }}
-                    ></div>
-                  </div>
-                  <div className="bar-value">${(item.revenue / 1000).toFixed(1)}k</div>
-                </div>
-              ))}
-            </div>
+        <div className="stats-row">
+          <div className="stat-card">
+            <h3>Churn Rate</h3>
+            <div className="stat-value negative">{revenueAnalytics.churn_rate}%</div>
           </div>
-
-          <div className="stats-row">
-            <div className="stat-card">
-              <h3>Churn Rate</h3>
-              <div className="stat-value negative">{revenueAnalytics.churn_rate}%</div>
-            </div>
-          </div>
-        </>
+        </div>
       </div>
     );
   };
 
   const renderPlatformStatsSection = () => {
     if (!platformStats) return null;
-    
-    const maxUsers = useMemo(
-      () => Math.max(...platformStats.user_growth.map(d => d.users)),
-      [platformStats.user_growth]
-    );
 
     return (
       <div className="admin-section">
         <h2>Platform Statistics</h2>
-        <>
-          <div className="stats-grid">
-            <div className="stat-card">
-              <h3>Total Users</h3>
-              <div className="stat-value">{platformStats.total_users.toLocaleString()}</div>
-              <div className="stat-sublabel">Active: {platformStats.active_users.toLocaleString()}</div>
-            </div>
-            <div className="stat-card">
-              <h3>Music Library</h3>
-              <div className="stat-value">{platformStats.total_tracks.toLocaleString()}</div>
-              <div className="stat-sublabel">Tracks</div>
-            </div>
-            <div className="stat-card">
-              <h3>Albums</h3>
-              <div className="stat-value">{platformStats.total_albums.toLocaleString()}</div>
-            </div>
-            <div className="stat-card">
-              <h3>Artists</h3>
-              <div className="stat-value">{platformStats.total_artists.toLocaleString()}</div>
-            </div>
-            <div className="stat-card">
-              <h3>Playlists</h3>
-              <div className="stat-value">{platformStats.total_playlists.toLocaleString()}</div>
-            </div>
-            <div className="stat-card">
-              <h3>Total Plays</h3>
-              <div className="stat-value">{(platformStats.total_plays / 1000000).toFixed(1)}M</div>
-            </div>
-            <div className="stat-card">
-              <h3>Storage Used</h3>
-              <div className="stat-value">{platformStats.storage_used}</div>
-            </div>
-            <div className="stat-card">
-              <h3>Bandwidth</h3>
-              <div className="stat-value">{platformStats.bandwidth_used}</div>
-            </div>
-          </div>
 
-          <div className="user-growth-section">
-            <h3>User Growth (Last 6 Months)</h3>
-            <div className="simple-chart">
-              {platformStats.user_growth.map((item, idx) => (
-                <div key={idx} className="chart-bar">
-                  <div className="bar-label">{item.month}</div>
-                  <div className="bar-container">
-                    <div 
-                      className="bar-fill growth-bar" 
-                      style={{ width: `${(item.users / maxUsers) * 100}%` }}
-                    ></div>
-                  </div>
-                  <div className="bar-value">{item.users.toLocaleString()}</div>
-                </div>
-              ))}
-            </div>
+        <div className="stats-grid">
+          <div className="stat-card">
+            <h3>Total Users</h3>
+            <div className="stat-value">{platformStats.total_users.toLocaleString()}</div>
+            <div className="stat-sublabel">Active: {platformStats.active_users.toLocaleString()}</div>
           </div>
-        </>
+          <div className="stat-card">
+            <h3>Music Library</h3>
+            <div className="stat-value">{platformStats.total_tracks.toLocaleString()}</div>
+            <div className="stat-sublabel">Tracks</div>
+          </div>
+          <div className="stat-card">
+            <h3>Albums</h3>
+            <div className="stat-value">{platformStats.total_albums.toLocaleString()}</div>
+          </div>
+          <div className="stat-card">
+            <h3>Artists</h3>
+            <div className="stat-value">{platformStats.total_artists.toLocaleString()}</div>
+          </div>
+          <div className="stat-card">
+            <h3>Playlists</h3>
+            <div className="stat-value">{platformStats.total_playlists.toLocaleString()}</div>
+          </div>
+          <div className="stat-card">
+            <h3>Total Plays</h3>
+            <div className="stat-value">{(platformStats.total_plays / 1000000).toFixed(1)}M</div>
+          </div>
+          <div className="stat-card">
+            <h3>Storage Used</h3>
+            <div className="stat-value">{platformStats.storage_used}</div>
+          </div>
+          <div className="stat-card">
+            <h3>Bandwidth</h3>
+            <div className="stat-value">{platformStats.bandwidth_used}</div>
+          </div>
+        </div>
+
+        <div className="user-growth-section">
+          <h3>User Growth (Last 6 Months)</h3>
+          <div className="simple-chart">
+            {platformStats.user_growth.map((item, idx) => (
+              <div key={idx} className="chart-bar">
+                <div className="bar-label">{item.month}</div>
+                <div className="bar-container">
+                  <div
+                    className="bar-fill growth-bar"
+                    style={{ width: `${maxUsers ? (item.users / maxUsers) * 100 : 0}%` }}
+                  />
+                </div>
+                <div className="bar-value">{item.users.toLocaleString()}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   };
 
   const renderUserActivitySection = () => {
     if (!userActivity) return null;
-    
-    const maxPeakUsers = useMemo(
-      () => Math.max(...userActivity.peak_hours.map(d => d.users)),
-      [userActivity.peak_hours]
-    );
 
     return (
       <div className="admin-section">
         <h2>User Activity Analytics</h2>
-        <>
-          <div className="stats-grid">
-            <div className="stat-card">
-              <h3>Daily Active Users</h3>
-              <div className="stat-value">{userActivity.daily_active_users.toLocaleString()}</div>
-            </div>
-            <div className="stat-card">
-              <h3>Weekly Active Users</h3>
-              <div className="stat-value">{userActivity.weekly_active_users.toLocaleString()}</div>
-            </div>
-            <div className="stat-card">
-              <h3>Monthly Active Users</h3>
-              <div className="stat-value">{userActivity.monthly_active_users.toLocaleString()}</div>
-            </div>
-            <div className="stat-card">
-              <h3>Avg Session Duration</h3>
-              <div className="stat-value">{userActivity.avg_session_duration}</div>
-            </div>
-          </div>
 
-          <div className="peak-hours-section">
-            <h3>Peak Usage Hours</h3>
-            <div className="simple-chart">
-              {userActivity.peak_hours.map((item, idx) => (
-                <div key={idx} className="chart-bar">
-                  <div className="bar-label">{item.hour}</div>
-                  <div className="bar-container">
-                    <div 
-                      className="bar-fill activity-bar" 
-                      style={{ width: `${(item.users / maxPeakUsers) * 100}%` }}
-                    ></div>
-                  </div>
-                  <div className="bar-value">{item.users.toLocaleString()}</div>
+        <div className="stats-grid">
+          <div className="stat-card">
+            <h3>Daily Active Users</h3>
+            <div className="stat-value">{userActivity.daily_active_users.toLocaleString()}</div>
+          </div>
+          <div className="stat-card">
+            <h3>Weekly Active Users</h3>
+            <div className="stat-value">{userActivity.weekly_active_users.toLocaleString()}</div>
+          </div>
+          <div className="stat-card">
+            <h3>Monthly Active Users</h3>
+            <div className="stat-value">{userActivity.monthly_active_users.toLocaleString()}</div>
+          </div>
+          <div className="stat-card">
+            <h3>Avg Session Duration</h3>
+            <div className="stat-value">{userActivity.avg_session_duration}</div>
+          </div>
+        </div>
+
+        <div className="peak-hours-section">
+          <h3>Peak Usage Hours</h3>
+          <div className="simple-chart">
+            {userActivity.peak_hours.map((item, idx) => (
+              <div key={idx} className="chart-bar">
+                <div className="bar-label">{item.hour}</div>
+                <div className="bar-container">
+                  <div
+                    className="bar-fill activity-bar"
+                    style={{ width: `${maxPeakUsers ? (item.users / maxPeakUsers) * 100 : 0}%` }}
+                  />
                 </div>
-              ))}
-            </div>
+                <div className="bar-value">{item.users.toLocaleString()}</div>
+              </div>
+            ))}
           </div>
+        </div>
 
-          <div className="feature-usage-section">
-            <h3>Feature Usage</h3>
-            <div className="feature-grid">
-              {userActivity.top_features.map((feature, idx) => (
-                <div key={idx} className="feature-card">
-                  <div className="feature-name">{feature.feature}</div>
-                  <div className="usage-bar-container">
-                    <div className="usage-bar" style={{ width: `${feature.usage}%` }}></div>
-                  </div>
-                  <div className="usage-percentage">{feature.usage}%</div>
+        <div className="feature-usage-section">
+          <h3>Feature Usage</h3>
+          <div className="feature-grid">
+            {userActivity.top_features.map((feature, idx) => (
+              <div key={idx} className="feature-card">
+                <div className="feature-name">{feature.feature}</div>
+                <div className="usage-bar-container">
+                  <div className="usage-bar" style={{ width: `${feature.usage}%` }} />
                 </div>
-              ))}
-            </div>
+                <div className="usage-percentage">{feature.usage}%</div>
+              </div>
+            ))}
           </div>
+        </div>
 
-          <div className="retention-section">
-            <h3>User Retention</h3>
-            <div className="retention-grid">
-              <div className="retention-card">
-                <h4>Day 1</h4>
-                <div className="retention-value">{userActivity.retention_rate.day_1}%</div>
-              </div>
-              <div className="retention-card">
-                <h4>Day 7</h4>
-                <div className="retention-value">{userActivity.retention_rate.day_7}%</div>
-              </div>
-              <div className="retention-card">
-                <h4>Day 30</h4>
-                <div className="retention-value">{userActivity.retention_rate.day_30}%</div>
-              </div>
+        <div className="retention-section">
+          <h3>User Retention</h3>
+          <div className="retention-grid">
+            <div className="retention-card">
+              <h4>Day 1</h4>
+              <div className="retention-value">{userActivity.retention_rate.day_1}%</div>
+            </div>
+            <div className="retention-card">
+              <h4>Day 7</h4>
+              <div className="retention-value">{userActivity.retention_rate.day_7}%</div>
+            </div>
+            <div className="retention-card">
+              <h4>Day 30</h4>
+              <div className="retention-value">{userActivity.retention_rate.day_30}%</div>
             </div>
           </div>
-        </>
+        </div>
       </div>
     );
   };
@@ -729,52 +732,28 @@ function AdminDashboard() {
       </div>
 
       <div className="admin-tabs">
-        <button
-          className={activeTab === 'pricing' ? 'active' : ''}
-          onClick={() => setActiveTab('pricing')}
-        >
+        <button className={activeTab === 'pricing' ? 'active' : ''} onClick={() => setActiveTab('pricing')}>
           Price Trends
         </button>
-        <button
-          className={activeTab === 'competitors' ? 'active' : ''}
-          onClick={() => setActiveTab('competitors')}
-        >
+        <button className={activeTab === 'competitors' ? 'active' : ''} onClick={() => setActiveTab('competitors')}>
           Competitors
         </button>
-        <button
-          className={activeTab === 'music' ? 'active' : ''}
-          onClick={() => setActiveTab('music')}
-        >
+        <button className={activeTab === 'music' ? 'active' : ''} onClick={() => setActiveTab('music')}>
           Music Analytics
         </button>
-        <button
-          className={activeTab === 'ml-analysis' ? 'active' : ''}
-          onClick={() => setActiveTab('ml-analysis')}
-        >
+        <button className={activeTab === 'ml-analysis' ? 'active' : ''} onClick={() => setActiveTab('ml-analysis')}>
           ML Price Analysis
         </button>
-        <button
-          className={activeTab === 'revenue' ? 'active' : ''}
-          onClick={() => setActiveTab('revenue')}
-        >
+        <button className={activeTab === 'revenue' ? 'active' : ''} onClick={() => setActiveTab('revenue')}>
           Revenue
         </button>
-        <button
-          className={activeTab === 'platform' ? 'active' : ''}
-          onClick={() => setActiveTab('platform')}
-        >
+        <button className={activeTab === 'platform' ? 'active' : ''} onClick={() => setActiveTab('platform')}>
           Platform Stats
         </button>
-        <button
-          className={activeTab === 'activity' ? 'active' : ''}
-          onClick={() => setActiveTab('activity')}
-        >
+        <button className={activeTab === 'activity' ? 'active' : ''} onClick={() => setActiveTab('activity')}>
           User Activity
         </button>
-        <button
-          className={activeTab === 'users' ? 'active' : ''}
-          onClick={() => setActiveTab('users')}
-        >
+        <button className={activeTab === 'users' ? 'active' : ''} onClick={() => setActiveTab('users')}>
           User Management
         </button>
       </div>
@@ -782,7 +761,7 @@ function AdminDashboard() {
       <div className="admin-content">
         {loading && <div className="loading">Loading...</div>}
         {error && <div className="error">Error: {error}</div>}
-        
+
         {!loading && !error && (
           <>
             {activeTab === 'pricing' && renderPricingSection()}
