@@ -64,7 +64,7 @@ class SearchRepository:
         return [
             TrackSearchHit(
                 track_id=r.track_id,
-                track_title=r.track_title,
+                track_title=r.title,
                 artist_names=r.artist_names,
                 album_titles=r.album_titles,
                 genre_names=r.genre_names,

@@ -168,22 +168,22 @@ class AdminService(service.Service):
             
             # Top played tracks
             top_tracks = db.query(
-                Track.track_title,
-                Track.track_artist,
-                func.count(PlayHistory.play_id).label('play_count')
+                Track.title,
+                # Track.track_artist,
+                func.count(PlayHistory.played_at).label('play_count')
             ).join(
                 PlayHistory, PlayHistory.track_id == Track.track_id
             ).group_by(
-                Track.track_id, Track.track_title, Track.track_artist
+                Track.track_id, Track.title
             ).order_by(
-                func.count(PlayHistory.play_id).desc()
+                func.count(PlayHistory.played_at).desc()
             ).limit(10).all()
             
             # Play count by date (last 30 days)
             thirty_days_ago = datetime.utcnow() - timedelta(days=30)
             plays_by_date = db.query(
                 func.date(PlayHistory.played_at).label('date'),
-                func.count(PlayHistory.play_id).label('play_count')
+                func.count(PlayHistory.played_at).label('play_count')
             ).filter(
                 PlayHistory.played_at >= thirty_days_ago
             ).group_by(
@@ -196,8 +196,8 @@ class AdminService(service.Service):
                 "total_tracks": total_tracks,
                 "top_tracks": [
                     {
-                        "title": track.track_title,
-                        "artist": track.track_artist,
+                        "title": track.title,
+                        # "artist": track.track_artist,
                         "play_count": track.play_count
                     }
                     for track in top_tracks

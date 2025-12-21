@@ -88,7 +88,7 @@ class AuthRoutes(base_routes.BaseRoutes):
                 )
                 
                 # Generate JWT token
-                token = generate_token(user_response["user_id"], email)
+                token = generate_token(user_response["user_id"], email, user_response["role"])
                 print("Generated token:", token)
                 
                 # Remove password_hash from response
@@ -131,7 +131,7 @@ class AuthRoutes(base_routes.BaseRoutes):
                     return jsonify({"error": "Invalid credentials"}), 401
                 
                 # Generate JWT token
-                token = generate_token(user.user_id, user.email)
+                token = generate_token(user.user_id, user.email, user.role.value)
                 
                 # Remove password_hash from response
                 print("User logged in successfully:", user.role)
@@ -284,3 +284,5 @@ class AuthRoutes(base_routes.BaseRoutes):
                 return jsonify({"error": "Failed to fetch user"}), 500
             
         return auth_bp
+    
+    

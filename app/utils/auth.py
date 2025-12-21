@@ -45,7 +45,7 @@ def verify_password(password: str, password_hash: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
 
 
-def generate_token(user_id: int, email: str) -> str:
+def generate_token(user_id: int, email: str, role: str) -> str:
     """Generate a JWT token for a user.
     
     Args:
@@ -59,7 +59,8 @@ def generate_token(user_id: int, email: str) -> str:
         "user_id": user_id,
         "email": email,
         "exp": datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRATION_HOURS),
-        "iat": datetime.now(timezone.utc)
+        "iat": datetime.now(timezone.utc),
+        "role": role
     }
     token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
     return token
