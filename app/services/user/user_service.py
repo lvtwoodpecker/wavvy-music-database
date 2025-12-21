@@ -27,6 +27,7 @@ class UserService(service.Service):
         self.create_service()
 
     def create_service(self):
+        print("Creating UserService and sub-services...")
         self._find_user_service = self._create_find_user_service()
         self._user_status_service = self._create_user_status_service()
         self._user_creation_service = self._create_user_service()

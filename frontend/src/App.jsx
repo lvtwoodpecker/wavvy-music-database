@@ -12,6 +12,7 @@ import Signup from "./pages/Signup.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import Settings from "./pages/Settings.jsx";
+import AdminDashboard from "./pages/AdminDashboard.jsx";
 import Library from "./pages/Library.jsx";
 import AlbumDetail from "./pages/AlbumDetail.jsx";
 import PlaylistPage from "./pages/Playlist.jsx";
@@ -122,6 +123,17 @@ function App() {
                   <>
                     <NavigationHeader />
                     <Settings />
+                  </>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <>
+                    <NavigationHeader />
+                    <AdminDashboard />
                   </>
                 </ProtectedRoute>
               }

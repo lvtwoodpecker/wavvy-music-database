@@ -98,19 +98,23 @@ class UserStatusService:
             # Delete from role-specific table first (if present)
             success_msg = ""
 
-            if role_value == "listener":
+            if role_value == "user":
                 db.query(Listener).filter(Listener.user_id == user_id).delete(
                     synchronize_session=False
                 )
                 success_msg = "Listener data deleted successfully."
-            elif role_value == "advertiser":
+                
                 db.query(Advertiser).filter(Advertiser.user_id == user_id).delete(
                     synchronize_session=False
                 )
                 success_msg = "Advertiser data deleted successfully."
+                
+            elif role_value == "admin":
+                # Admins may not have role-specific records
+                success_msg = "No role-specific data to delete for admin."
             else:
                 raise RuntimeError(f"Unknown role '{role_value}' for user ID {user_id}")
-
+            
             # Then delete from User table
             db.delete(user)
             db.commit()

@@ -1,22 +1,32 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func
+from sqlalchemy import Column, Integer, BigInteger, String, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship
 from app.db.sqlalchemy_engine import Base
 
 
 class SubscriptionHistory(Base):
     __tablename__ = "SubscriptionHistory"
+    __table_args__ = {"schema": "public"} 
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("User.user_id"), nullable=False, index=True)
+
+    user_id = Column(
+        BigInteger, 
+        ForeignKey("public.User.user_id", ondelete="CASCADE"), 
+        nullable=False,
+        index=True,
+    )
+
     plan_id = Column(Integer, nullable=True)
     plan_name = Column(String, nullable=True)
     status = Column(String, nullable=False, default="active")  # active | canceled | expired
+
     started_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     expires_at = Column(DateTime(timezone=True), nullable=True)
     canceled_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
-    user = relationship("User", backref="subscription_history")
+    # Prefer explicit back_populates over backref (cleaner, less magic)
+    user = relationship("User", back_populates="subscription_history")
 
     def to_dict(self):
         return {

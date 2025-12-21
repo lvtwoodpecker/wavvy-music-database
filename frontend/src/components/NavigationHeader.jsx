@@ -25,6 +25,12 @@ function NavigationHeader() {
     navigate('/settings');
   };
 
+  const handleAdminDashboard = () => {
+    navigate('/admin');
+  };
+
+  const isAdmin = user?.role === 'admin';
+
   return (
     <header className="navigation-header">
       <div className="nav-controls">
@@ -89,6 +95,30 @@ function NavigationHeader() {
       </div>
 
       <div className="nav-actions">
+        {isAdmin && (
+          <button
+            className="nav-btn admin-btn"
+            onClick={handleAdminDashboard}
+            aria-label="Admin Dashboard"
+            title="Admin Dashboard"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+            </svg>
+          </button>
+        )}
         <button
           className="nav-btn settings-btn"
           onClick={handleSettings}

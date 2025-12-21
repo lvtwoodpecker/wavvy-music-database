@@ -96,7 +96,9 @@ class WavvyAPI(Flask):
             r"/api/*": {
                 "origins": [self._settings.FRONTEND_URL],
                 "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-                "allow_headers": ["Content-Type", "Authorization"]
+                "allow_headers": ["Content-Type", "Authorization"],
+                "supports_credentials": True,
+                "expose_headers": ["Content-Type", "Authorization"]
             }
         })
 

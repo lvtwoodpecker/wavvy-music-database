@@ -3,6 +3,8 @@ from app.services.stripe.stripe_service import StripeService
 from app.services.playlist.playlist_service import PlaylistService
 from app.services.library.library_service import LibraryService
 from app.services.search.search_service import SearchService
+from app.services.pricing.pricing_service import PricingService
+from app.services.admin.admin_service import AdminService
 
 
 class APIServices:
@@ -18,6 +20,7 @@ class APIServices:
         playlist_service (PlaylistService): Service for playlist operations.
         library_service (LibraryService): Service for library/track operations.
         search_service (SearchService): Service for search operations.
+        admin_service (AdminService): Service for admin operations.
     
     Methods:
         create_services(): Initializes all services.
@@ -29,6 +32,8 @@ class APIServices:
         self._playlist_service = PlaylistService(app)
         self._library_service = LibraryService(app)
         self._search_service = SearchService(app)
+        self._pricing_service = PricingService(app)
+        self._admin_service = AdminService(app)
     
     @property
     def user_service(self) -> UserService:
@@ -50,9 +55,20 @@ class APIServices:
     def search_service(self) -> SearchService:
         return self._search_service
     
+    @property
+    def pricing_service(self) -> PricingService:
+        return self._pricing_service
+    
+    @property
+    def admin_service(self) -> AdminService:
+        return self._admin_service
+    
     def create_services(self):
         self._stripe_service.create_service()
         self._user_service.create_service()
         self._playlist_service.create_service()
         self._library_service.create_service()
         self._search_service.create_service()
+        self._pricing_service.create_service()
+        self._admin_service.create_service()
+        

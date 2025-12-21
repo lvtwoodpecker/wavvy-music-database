@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Enum
+from sqlalchemy import Column, BigInteger, String, Enum
 from sqlalchemy.orm import relationship
 from app.db.sqlalchemy_engine import Base
 import enum
@@ -6,9 +6,8 @@ import enum
 # It inherits from the SQLAlchemy Base class.
 
 class UserRole(enum.Enum):
-    listener = "listener"
-    advertiser = "advertiser"
-    
+    user = "user"
+    admin = "admin"
 
 class User(Base):
     """
@@ -34,8 +33,9 @@ class User(Base):
     
     """
     __tablename__ = "User"
+    __table_args__ = {"schema": "public"}
 
-    user_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(BigInteger, primary_key=True, autoincrement=True)
     email = Column(String, unique=True, nullable=False)
     username = Column(String, unique=True, nullable=False)
     first_name = Column(String, nullable=False)
@@ -44,7 +44,7 @@ class User(Base):
     country = Column(String, nullable=True)
     role = Column(Enum(UserRole), nullable=False)
     status = Column(String, default="active")
-
+    
     # one-to-one relationship from User --> Listener
     listener_profile = relationship(
         "Listener",
@@ -68,7 +68,28 @@ class User(Base):
         uselist=False,
         cascade="all, delete-orphan"
     )
-        
+    
+    subscription_price_changes = relationship(
+        "SubscriptionPlanPrice",
+        back_populates="changed_by_user",
+        foreign_keys="SubscriptionPlanPrice.changed_by_user_id",
+    )
+    
+    password_reset_tokens = relationship(
+        "PasswordResetToken",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    
+    subscription_history = relationship(
+        "SubscriptionHistory",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+
+
+    
     # one-to-many relationship from User --> Playlist
     # playlists = relationship("Playlist", back_populates="owner", cascade="all, delete-orphan")
 
