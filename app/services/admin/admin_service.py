@@ -32,6 +32,7 @@ class AdminService(service.Service):
 
     def __init__(self, app):
         super().__init__(app)
+        # Call create_service after init, following the pattern
         self.create_service()
 
     def create_service(self):
@@ -42,7 +43,7 @@ class AdminService(service.Service):
 
     def get_pricing_trends(self) -> List[Dict[str, Any]]:
         """Get subscription pricing trends with history."""
-        db = self._db_session_factory()
+        db = self.db_session_factory()
         try:
             plans = db.query(SubscriptionPlan).all()
             
@@ -77,7 +78,7 @@ class AdminService(service.Service):
         if new_price < 0:
             raise ValueError("Price must be non-negative")
         
-        db = self._db_session_factory()
+        db = self.db_session_factory()
         try:
             plan = db.query(SubscriptionPlan).filter(SubscriptionPlan.plan_id == plan_id).first()
             if not plan:
@@ -114,7 +115,7 @@ class AdminService(service.Service):
 
     def get_competitor_data(self) -> List[Dict[str, Any]]:
         """Get competitor pricing and plan information."""
-        db = self._db_session_factory()
+        db = self.db_session_factory()
         try:
             competitors = db.query(Competitor).all()
             
@@ -160,7 +161,7 @@ class AdminService(service.Service):
 
     def get_music_analytics(self) -> Dict[str, Any]:
         """Get music analytics data."""
-        db = self._db_session_factory()
+        db = self.db_session_factory()
         try:
             # Total tracks
             total_tracks = db.query(func.count(Track.track_id)).scalar() or 0
@@ -216,7 +217,7 @@ class AdminService(service.Service):
 
     def get_ml_price_analysis(self) -> List[Dict[str, Any]]:
         """Get ML-based price recommendations."""
-        db = self._db_session_factory()
+        db = self.db_session_factory()
         try:
             # Get our current prices
             our_plans = db.query(SubscriptionPlan).all()
@@ -279,7 +280,7 @@ class AdminService(service.Service):
         if page < 1 or per_page < 1 or per_page > 100:
             raise ValueError("Invalid pagination parameters")
         
-        db = self._db_session_factory()
+        db = self.db_session_factory()
         try:
             # Get total count
             total = db.query(func.count(User.user_id)).scalar()
@@ -310,7 +311,7 @@ class AdminService(service.Service):
         if status not in ["active", "banned", "inactive"]:
             raise ValueError("Invalid status. Must be 'active', 'banned', or 'inactive'")
         
-        db = self._db_session_factory()
+        db = self.db_session_factory()
         try:
             user = db.query(User).filter(User.user_id == user_id).first()
             if not user:
@@ -331,7 +332,7 @@ class AdminService(service.Service):
         if role not in ["user", "admin"]:
             raise ValueError("Invalid role. Must be 'user' or 'admin'")
         
-        db = self._db_session_factory()
+        db = self.db_session_factory()
         try:
             user = db.query(User).filter(User.user_id == user_id).first()
             if not user:
