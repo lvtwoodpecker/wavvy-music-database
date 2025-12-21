@@ -17,6 +17,9 @@ class SubscriptionPlan(Base):
     name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     price_usd: Mapped[float] = mapped_column(Numeric, nullable=False)
     feature_set: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSONB, nullable=True)
+    
+    prices = relationship("SubscriptionPlanPrice", back_populates="plan", order_by="desc(SubscriptionPlanPrice.effective_from)")
+
 
     price_history: Mapped[List["SubscriptionPlanPrice"]] = relationship(
         "SubscriptionPlanPrice",
