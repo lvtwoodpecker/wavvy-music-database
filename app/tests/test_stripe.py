@@ -38,7 +38,7 @@ class TestStripeAccountService:
         """Test retrieving existing Stripe account by user ID."""
         # Mock existing account
         mock_account = StripeAccount(
-            id=1,
+            stripe_id=1,
             user_id=123,
             stripe_customer_id="cus_test123",
             is_default=True
@@ -81,7 +81,7 @@ class TestStripeAccountService:
         
         # Mock the created account
         mock_account = Mock(
-            id=1,
+            stripe_id=1,
             user_id=123,
             stripe_customer_id="cus_new123",
             is_default=True

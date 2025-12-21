@@ -31,7 +31,7 @@ class StripeAccountService:
             db.refresh(account)
 
             return {
-                "stripe_account_id": account.id,
+                "stripe_account_id": account.stripe_id,
                 "user_id": account.user_id,
                 "stripe_customer_id": account.stripe_customer_id,
                 "is_default": account.is_default,
