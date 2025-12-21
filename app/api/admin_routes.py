@@ -19,16 +19,58 @@ class AdminRoutes(base_routes.BaseRoutes):
         def get_pricing_trends():
             """
             GET /api/admin/pricing-trends
-            Returns pricing trends for our subscription plans
+
+            Query params:
+            - include_series: bool (default true)        -> include time-series points
+            - granularity: "raw" | "monthly" (default monthly)
+            - include_rollups: bool (default true)      -> include portfolio KPIs
+
+            Returns:
+            {
+                "pricing_trends": {
+                "plans": [...],
+                "rollups": {...},
+                "as_of": "ISO8601"
+                }
+            }
             """
             if not self.verify_is_admin(request.current_user):
                 return jsonify({"error": "Admin privileges required"}), 403
-            
+
+            def _bool_param(name: str, default: bool) -> bool:
+                val = request.args.get(name)
+                if val is None:
+                    return default
+                return val.strip().lower() in ("1", "true", "t", "yes", "y", "on")
+
+            include_series = _bool_param("include_series", True)
+            include_rollups = _bool_param("include_rollups", True)
+            granularity = (request.args.get("granularity") or "monthly").strip().lower()
+            if granularity not in ("raw", "monthly"):
+                granularity = "monthly"
+
             try:
-                pricing_data = admin_service.get_pricing_trends()
-                return jsonify({"pricing_trends": pricing_data}), 200
+                # IMPORTANT: update your service signature to accept these knobs
+                pricing_payload = admin_service.get_pricing_trends(
+                    include_series=include_series,
+                    granularity=granularity,
+                    include_rollups=include_rollups,
+                )
+
+                return jsonify({"pricing_trends": pricing_payload}), 200
+
             except Exception as e:
-                print(f"[Admin] Error fetching pricing trends: {e}")
+                # Don't leak internals to client; log enough to debug
+                print(
+                    "[Admin] Error fetching pricing trends",
+                    {
+                        "error": str(e),
+                        "admin_user_id": getattr(request.current_user, "id", None),
+                        "include_series": include_series,
+                        "granularity": granularity,
+                        "include_rollups": include_rollups,
+                    }
+                )
                 return jsonify({"error": "Failed to fetch pricing trends"}), 500
 
         @admin_bp.get("/competitor-data")

@@ -16,6 +16,7 @@ from app.models.CompetitorSubscriptionPriceSnapshot import CompetitorSubscriptio
 from app.models.Track import Track
 from app.models.PlayHistory import PlayHistory
 from sqlalchemy.orm import selectinload
+from app.services.admin.pricing_analytics import PricingAnalyticsService
 
 SessionFactory = Callable[[], Session]
 
@@ -42,38 +43,15 @@ class AdminService(service.Service):
 
     # --- Pricing Operations ---
 
-    def get_pricing_trends(self) -> List[Dict[str, Any]]:
-        db = self.db_session_factory()
-        try:
-            plans = (
-                db.query(SubscriptionPlan)
-                .filter(SubscriptionPlan.is_active == True)
-                .options(selectinload(SubscriptionPlan.prices))
-                .all()
-            )
-
-            pricing_data = []
-            for plan in plans:
-                history_rows = list(plan.prices or [])
-                current = history_rows[0] if history_rows else None
-
-                pricing_data.append({
-                    "plan_id": plan.plan_id,
-                    "plan_name": getattr(plan, "name", None),
-                    "current_price": float(current.price) if current else None,
-                    "history": [
-                        {
-                            # "price_id": h.price_id,
-                            "price": float(h.price),
-                            "effective_from": h.effective_from.isoformat() if h.effective_from else None,
-                        }
-                        for h in history_rows
-                    ],
-                })
-
-            return pricing_data
-        finally:
-            db.close()
+    def get_pricing_trends(
+        self,
+        include_series: bool = True,
+        granularity: str = "daily",
+        include_rollups: bool = True
+        ) -> List[Dict[str, Any]]:
+        """Get current pricing and history for all subscription plans."""
+        pricing_service = PricingAnalyticsService(self.db_session_factory)
+        return pricing_service.get_pricing_trends()
 
     def update_subscription_price(self, plan_id: int, new_price: float, user_email: str) -> Dict[str, Any]:
         """Update subscription plan price and create history entry."""

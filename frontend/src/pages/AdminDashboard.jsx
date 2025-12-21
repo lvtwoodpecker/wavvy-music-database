@@ -14,6 +14,11 @@ function AdminDashboard() {
   
   // State for different sections
   const [pricingTrends, setPricingTrends] = useState([]);
+  const [pricingRollups, setPricingRollups] = useState({
+    active_plans: 0,
+    total_price_changes: 0,
+    avg_current_price: null,
+  });
   const [competitors, setCompetitors] = useState([]);
   const [musicAnalytics, setMusicAnalytics] = useState(null);
   const [mlAnalysis, setMlAnalysis] = useState([]);
@@ -55,13 +60,28 @@ function AdminDashboard() {
   };
 
   const fetchPricingTrends = async () => {
-    const response = await fetch(`${API_BASE_URL}/api/admin/pricing-trends`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (!response.ok) throw new Error('Failed to fetch pricing trends');
+    const qs = new URLSearchParams({
+      granularity: "monthly",
+      include_series: "true",
+      include_rollups: "true",
+    }).toString();
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/pricing-trends?${qs}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    if (!response.ok) throw new Error("Failed to fetch pricing trends");
+
     const data = await response.json();
-    setPricingTrends(data.pricing_trends || []);
+
+    // NEW SHAPE: pricing_trends = { plans: [...], rollups: {...} }
+    const payload = data.pricing_trends || { plans: [], rollups: null };
+
+    setPricingTrends(payload.plans || []);
+    setPricingRollups(payload.rollups || null); // add a state var for rollups
   };
+
 
   const fetchCompetitors = async () => {
     const response = await fetch(`${API_BASE_URL}/api/admin/competitor-data`, {
@@ -164,6 +184,15 @@ function AdminDashboard() {
   const renderPricingSection = () => (
     <div className="admin-section">
       <h2>Subscription Pricing Trends</h2>
+
+      {pricingRollups && (
+        <div className="pricing-rollups">
+          <div><strong>Active Plans:</strong> {pricingRollups.active_plans}</div>
+          <div><strong>Total Changes:</strong> {pricingRollups.total_price_changes}</div>
+          <div><strong>Avg Current Price:</strong> ${pricingRollups.avg_current_price?.toFixed(2)}</div>
+        </div>
+      )}
+
       {pricingTrends.map((plan) => (
         <PricingCard
           key={plan.plan_id}
