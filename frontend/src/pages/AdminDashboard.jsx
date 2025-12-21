@@ -24,10 +24,14 @@ function AdminDashboard() {
   const [mlAnalysis, setMlAnalysis] = useState([]);
   const [users, setUsers] = useState([]);
   const [usersPagination, setUsersPagination] = useState({ page: 1, per_page: 20 });
+  const [revenueAnalytics, setRevenueAnalytics] = useState(null);
+  const [platformStats, setPlatformStats] = useState(null);
+  const [userActivity, setUserActivity] = useState(null);
   
   // Fetch data based on active tab
   useEffect(() => {
     fetchTabData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, usersPagination.page]);
 
   const fetchTabData = async () => {
@@ -50,6 +54,15 @@ function AdminDashboard() {
           break;
         case 'users':
           await fetchUsers();
+          break;
+        case 'revenue':
+          await fetchRevenueAnalytics();
+          break;
+        case 'platform':
+          await fetchPlatformStats();
+          break;
+        case 'activity':
+          await fetchUserActivity();
           break;
       }
     } catch (err) {
@@ -119,6 +132,85 @@ function AdminDashboard() {
     const data = await response.json();
     setUsers(data.users || []);
     setUsersPagination({ ...usersPagination, ...data.pagination });
+  };
+
+  const fetchRevenueAnalytics = async () => {
+    // Mock data for demonstration - in production, this would be a real API endpoint
+    // This shows what kind of revenue analytics would be useful
+    const mockRevenue = {
+      total_revenue: 125430.50,
+      monthly_recurring_revenue: 15678.90,
+      annual_recurring_revenue: 188146.80,
+      revenue_by_plan: [
+        { plan_name: 'Basic', revenue: 35670.20, subscribers: 1234 },
+        { plan_name: 'Premium', revenue: 67890.50, subscribers: 678 },
+        { plan_name: 'Family', revenue: 21870.80, subscribers: 234 }
+      ],
+      revenue_trend: [
+        { month: 'Jan', revenue: 10234.50 },
+        { month: 'Feb', revenue: 11456.80 },
+        { month: 'Mar', revenue: 12890.40 },
+        { month: 'Apr', revenue: 13670.20 },
+        { month: 'May', revenue: 14567.30 },
+        { month: 'Jun', revenue: 15678.90 }
+      ],
+      churn_rate: 2.3,
+      growth_rate: 8.5
+    };
+    setRevenueAnalytics(mockRevenue);
+  };
+
+  const fetchPlatformStats = async () => {
+    // Mock data for demonstration - in production, this would be a real API endpoint
+    const mockStats = {
+      total_users: 5432,
+      active_users: 4123,
+      total_tracks: 125678,
+      total_albums: 8945,
+      total_artists: 4567,
+      total_playlists: 12345,
+      total_plays: 2345678,
+      storage_used: '1.2 TB',
+      bandwidth_used: '45.6 TB',
+      user_growth: [
+        { month: 'Jan', users: 4200 },
+        { month: 'Feb', users: 4456 },
+        { month: 'Mar', users: 4789 },
+        { month: 'Apr', users: 5012 },
+        { month: 'May', users: 5234 },
+        { month: 'Jun', users: 5432 }
+      ]
+    };
+    setPlatformStats(mockStats);
+  };
+
+  const fetchUserActivity = async () => {
+    // Mock data for demonstration - in production, this would be a real API endpoint
+    const mockActivity = {
+      daily_active_users: 1234,
+      weekly_active_users: 3456,
+      monthly_active_users: 4123,
+      avg_session_duration: '23.5 min',
+      avg_sessions_per_user: 4.2,
+      peak_hours: [
+        { hour: '6 AM', users: 234 },
+        { hour: '12 PM', users: 678 },
+        { hour: '6 PM', users: 1234 },
+        { hour: '9 PM', users: 1089 }
+      ],
+      top_features: [
+        { feature: 'Music Streaming', usage: 89.5 },
+        { feature: 'Playlists', usage: 67.8 },
+        { feature: 'Search', usage: 54.3 },
+        { feature: 'Recommendations', usage: 42.1 }
+      ],
+      retention_rate: {
+        day_1: 85.2,
+        day_7: 62.4,
+        day_30: 45.8
+      }
+    };
+    setUserActivity(mockActivity);
   };
 
   const updatePrice = async (planId, newPrice) => {
@@ -330,52 +422,54 @@ function AdminDashboard() {
   const renderUsersSection = () => (
     <div className="admin-section">
       <h2>User Management</h2>
-      <table className="users-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Email</th>
-            <th>Username</th>
-            <th>Role</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map(user => (
-            <tr key={user.user_id}>
-              <td>{user.user_id}</td>
-              <td>{user.email}</td>
-              <td>{user.username}</td>
-              <td>
-                <span className={`role-badge ${user.role}`}>{user.role}</span>
-              </td>
-              <td>
-                <span className={`status-badge ${user.status}`}>{user.status}</span>
-              </td>
-              <td className="actions-cell">
-                <select
-                  value={user.status}
-                  onChange={(e) => updateUserStatus(user.user_id, e.target.value)}
-                  className="action-select"
-                >
-                  <option value="active">Active</option>
-                  <option value="banned">Banned</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-                <select
-                  value={user.role}
-                  onChange={(e) => updateUserRole(user.user_id, e.target.value)}
-                  className="action-select"
-                >
-                  <option value="user">User</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </td>
+      <div className="users-table-container">
+        <table className="users-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Email</th>
+              <th>Username</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {users.map(user => (
+              <tr key={user.user_id}>
+                <td>{user.user_id}</td>
+                <td>{user.email}</td>
+                <td>{user.username}</td>
+                <td>
+                  <span className={`role-badge ${user.role}`}>{user.role}</span>
+                </td>
+                <td>
+                  <span className={`status-badge ${user.status}`}>{user.status}</span>
+                </td>
+                <td className="actions-cell">
+                  <select
+                    value={user.status}
+                    onChange={(e) => updateUserStatus(user.user_id, e.target.value)}
+                    className="action-select"
+                  >
+                    <option value="active">Active</option>
+                    <option value="banned">Banned</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                  <select
+                    value={user.role}
+                    onChange={(e) => updateUserRole(user.user_id, e.target.value)}
+                    className="action-select"
+                  >
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       
       <div className="pagination">
         <button
@@ -392,6 +486,226 @@ function AdminDashboard() {
           Next
         </button>
       </div>
+    </div>
+  );
+
+  const renderRevenueSection = () => (
+    <div className="admin-section">
+      <h2>Revenue Analytics</h2>
+      {revenueAnalytics && (
+        <>
+          <div className="stats-grid">
+            <div className="stat-card">
+              <h3>Total Revenue</h3>
+              <div className="stat-value">${revenueAnalytics.total_revenue.toLocaleString()}</div>
+            </div>
+            <div className="stat-card">
+              <h3>MRR</h3>
+              <div className="stat-value">${revenueAnalytics.monthly_recurring_revenue.toLocaleString()}</div>
+              <div className="stat-label">Monthly Recurring Revenue</div>
+            </div>
+            <div className="stat-card">
+              <h3>ARR</h3>
+              <div className="stat-value">${revenueAnalytics.annual_recurring_revenue.toLocaleString()}</div>
+              <div className="stat-label">Annual Recurring Revenue</div>
+            </div>
+            <div className="stat-card">
+              <h3>Growth Rate</h3>
+              <div className="stat-value positive">{revenueAnalytics.growth_rate}%</div>
+            </div>
+          </div>
+
+          <div className="revenue-by-plan">
+            <h3>Revenue by Subscription Plan</h3>
+            <div className="plan-revenue-grid">
+              {revenueAnalytics.revenue_by_plan.map((plan, idx) => (
+                <div key={idx} className="plan-revenue-card">
+                  <h4>{plan.plan_name}</h4>
+                  <div className="revenue-amount">${plan.revenue.toLocaleString()}</div>
+                  <div className="subscriber-count">{plan.subscribers} subscribers</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="revenue-trend-section">
+            <h3>Revenue Trend (Last 6 Months)</h3>
+            <div className="simple-chart">
+              {revenueAnalytics.revenue_trend.map((item, idx) => {
+                const maxRevenue = Math.max(...revenueAnalytics.revenue_trend.map(d => d.revenue));
+                return (
+                  <div key={idx} className="chart-bar">
+                    <div className="bar-label">{item.month}</div>
+                    <div className="bar-container">
+                      <div 
+                        className="bar-fill revenue-bar" 
+                        style={{ width: `${(item.revenue / maxRevenue) * 100}%` }}
+                      ></div>
+                    </div>
+                    <div className="bar-value">${(item.revenue / 1000).toFixed(1)}k</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="stats-row">
+            <div className="stat-card">
+              <h3>Churn Rate</h3>
+              <div className="stat-value negative">{revenueAnalytics.churn_rate}%</div>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+
+  const renderPlatformStatsSection = () => (
+    <div className="admin-section">
+      <h2>Platform Statistics</h2>
+      {platformStats && (
+        <>
+          <div className="stats-grid">
+            <div className="stat-card">
+              <h3>Total Users</h3>
+              <div className="stat-value">{platformStats.total_users.toLocaleString()}</div>
+              <div className="stat-sublabel">Active: {platformStats.active_users.toLocaleString()}</div>
+            </div>
+            <div className="stat-card">
+              <h3>Music Library</h3>
+              <div className="stat-value">{platformStats.total_tracks.toLocaleString()}</div>
+              <div className="stat-sublabel">Tracks</div>
+            </div>
+            <div className="stat-card">
+              <h3>Albums</h3>
+              <div className="stat-value">{platformStats.total_albums.toLocaleString()}</div>
+            </div>
+            <div className="stat-card">
+              <h3>Artists</h3>
+              <div className="stat-value">{platformStats.total_artists.toLocaleString()}</div>
+            </div>
+            <div className="stat-card">
+              <h3>Playlists</h3>
+              <div className="stat-value">{platformStats.total_playlists.toLocaleString()}</div>
+            </div>
+            <div className="stat-card">
+              <h3>Total Plays</h3>
+              <div className="stat-value">{(platformStats.total_plays / 1000000).toFixed(1)}M</div>
+            </div>
+            <div className="stat-card">
+              <h3>Storage Used</h3>
+              <div className="stat-value">{platformStats.storage_used}</div>
+            </div>
+            <div className="stat-card">
+              <h3>Bandwidth</h3>
+              <div className="stat-value">{platformStats.bandwidth_used}</div>
+            </div>
+          </div>
+
+          <div className="user-growth-section">
+            <h3>User Growth (Last 6 Months)</h3>
+            <div className="simple-chart">
+              {platformStats.user_growth.map((item, idx) => {
+                const maxUsers = Math.max(...platformStats.user_growth.map(d => d.users));
+                return (
+                  <div key={idx} className="chart-bar">
+                    <div className="bar-label">{item.month}</div>
+                    <div className="bar-container">
+                      <div 
+                        className="bar-fill growth-bar" 
+                        style={{ width: `${(item.users / maxUsers) * 100}%` }}
+                      ></div>
+                    </div>
+                    <div className="bar-value">{item.users.toLocaleString()}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+
+  const renderUserActivitySection = () => (
+    <div className="admin-section">
+      <h2>User Activity Analytics</h2>
+      {userActivity && (
+        <>
+          <div className="stats-grid">
+            <div className="stat-card">
+              <h3>Daily Active Users</h3>
+              <div className="stat-value">{userActivity.daily_active_users.toLocaleString()}</div>
+            </div>
+            <div className="stat-card">
+              <h3>Weekly Active Users</h3>
+              <div className="stat-value">{userActivity.weekly_active_users.toLocaleString()}</div>
+            </div>
+            <div className="stat-card">
+              <h3>Monthly Active Users</h3>
+              <div className="stat-value">{userActivity.monthly_active_users.toLocaleString()}</div>
+            </div>
+            <div className="stat-card">
+              <h3>Avg Session Duration</h3>
+              <div className="stat-value">{userActivity.avg_session_duration}</div>
+            </div>
+          </div>
+
+          <div className="peak-hours-section">
+            <h3>Peak Usage Hours</h3>
+            <div className="simple-chart">
+              {userActivity.peak_hours.map((item, idx) => {
+                const maxUsers = Math.max(...userActivity.peak_hours.map(d => d.users));
+                return (
+                  <div key={idx} className="chart-bar">
+                    <div className="bar-label">{item.hour}</div>
+                    <div className="bar-container">
+                      <div 
+                        className="bar-fill activity-bar" 
+                        style={{ width: `${(item.users / maxUsers) * 100}%` }}
+                      ></div>
+                    </div>
+                    <div className="bar-value">{item.users.toLocaleString()}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="feature-usage-section">
+            <h3>Feature Usage</h3>
+            <div className="feature-grid">
+              {userActivity.top_features.map((feature, idx) => (
+                <div key={idx} className="feature-card">
+                  <div className="feature-name">{feature.feature}</div>
+                  <div className="usage-bar-container">
+                    <div className="usage-bar" style={{ width: `${feature.usage}%` }}></div>
+                  </div>
+                  <div className="usage-percentage">{feature.usage}%</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="retention-section">
+            <h3>User Retention</h3>
+            <div className="retention-grid">
+              <div className="retention-card">
+                <h4>Day 1</h4>
+                <div className="retention-value">{userActivity.retention_rate.day_1}%</div>
+              </div>
+              <div className="retention-card">
+                <h4>Day 7</h4>
+                <div className="retention-value">{userActivity.retention_rate.day_7}%</div>
+              </div>
+              <div className="retention-card">
+                <h4>Day 30</h4>
+                <div className="retention-value">{userActivity.retention_rate.day_30}%</div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 
@@ -428,6 +742,24 @@ function AdminDashboard() {
           ML Price Analysis
         </button>
         <button
+          className={activeTab === 'revenue' ? 'active' : ''}
+          onClick={() => setActiveTab('revenue')}
+        >
+          Revenue
+        </button>
+        <button
+          className={activeTab === 'platform' ? 'active' : ''}
+          onClick={() => setActiveTab('platform')}
+        >
+          Platform Stats
+        </button>
+        <button
+          className={activeTab === 'activity' ? 'active' : ''}
+          onClick={() => setActiveTab('activity')}
+        >
+          User Activity
+        </button>
+        <button
           className={activeTab === 'users' ? 'active' : ''}
           onClick={() => setActiveTab('users')}
         >
@@ -445,6 +777,9 @@ function AdminDashboard() {
             {activeTab === 'competitors' && renderCompetitorsSection()}
             {activeTab === 'music' && renderMusicSection()}
             {activeTab === 'ml-analysis' && renderMLAnalysisSection()}
+            {activeTab === 'revenue' && renderRevenueSection()}
+            {activeTab === 'platform' && renderPlatformStatsSection()}
+            {activeTab === 'activity' && renderUserActivitySection()}
             {activeTab === 'users' && renderUsersSection()}
           </>
         )}
