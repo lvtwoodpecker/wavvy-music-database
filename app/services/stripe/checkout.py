@@ -62,7 +62,7 @@ class StripeCheckoutService:
         stripe_customer_id = self._get_stripe_customer_id(user_id)
         
         if require_connected_account and not stripe_customer_id:
-            raise ValueError("User must connect a Stripe account before making payments. Please connect your account in Settings.")
+            raise ValueError("STRIPE_NOT_CONNECTED")
 
         # Prepare session parameters
         session_params = {

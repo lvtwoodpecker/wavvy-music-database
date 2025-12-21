@@ -31,7 +31,7 @@ function PayButton() {
 
       // Check if user needs to connect Stripe account
       if (!res.ok) {
-        if (data.error && data.error.includes('connect a Stripe account')) {
+        if (data.error_code === 'STRIPE_NOT_CONNECTED') {
           setError(
             <span>
               {data.error}{' '}
@@ -44,7 +44,7 @@ function PayButton() {
             </span>
           )
         } else {
-          setError(data.error || `Something went wrong starting checkout. ${JSON.stringify(data)}`)
+          setError(data.error || `Something went wrong starting checkout.`)
         }
         setLoading(false)
         return

@@ -195,7 +195,7 @@ class TestStripeCheckoutService:
                 payment_for="Premium Subscription"
             )
         
-        assert "connect a Stripe account" in str(exc_info.value)
+        assert "STRIPE_NOT_CONNECTED" in str(exc_info.value)
         mock_db_session.close.assert_called_once()
     
     @patch('app.services.stripe.checkout.stripe.checkout.Session.create')

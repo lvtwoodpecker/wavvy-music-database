@@ -61,6 +61,12 @@ class StripeRoutes(base_routes.BaseRoutes):
                 return jsonify(payment_intent), 200
             except ValueError as e:
                 # Handle user not having connected Stripe account
+                error_code = str(e)
+                if error_code == "STRIPE_NOT_CONNECTED":
+                    return jsonify({
+                        "error": "User must connect a Stripe account before making payments. Please connect your account in Settings.",
+                        "error_code": "STRIPE_NOT_CONNECTED"
+                    }), 400
                 return jsonify({"error": str(e)}), 400
             except Exception as e:
                 print(f"Error creating checkout session: {e}")
