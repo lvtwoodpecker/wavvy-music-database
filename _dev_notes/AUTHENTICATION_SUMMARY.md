@@ -161,3 +161,9 @@ The authentication implementation is **complete, tested, and production-ready**.
 3. ✅ Main features are protected behind authentication
 
 The implementation follows security best practices, includes comprehensive testing, and provides a polished user experience.
+
+<img width="817" height="531" alt="image" src="https://github.com/user-attachments/assets/8b391077-4758-4737-a35b-42d302c74d4d" />
+<img width="1075" height="751" alt="image" src="https://github.com/user-attachments/assets/8e4f7831-95f0-4608-95ab-898b712a9f58" />
+<img width="1001" height="619" alt="image" src="https://github.com/user-attachments/assets/69e75315-7698-477d-b058-3db677c78b14" />
+
+
