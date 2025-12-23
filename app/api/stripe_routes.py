@@ -14,19 +14,23 @@ class StripeRoutes(base_routes.BaseRoutes):
         
         # ---- Stripe Checkout Session Creation ----
         @bp.route('/create-checkout-session', methods=['POST'])
+        @login_required
         def create_session():
             """ Creates a Stripe Checkout Session and returns the session URL.
             
+            Headers:
+                Authorization: Bearer <token>
+            
             Expects JSON body with:
             {
-                "user_id": "string",          # ID of the user making the payment
                 "amount": integer,            # Amount in cents
-                "currency": "string",         # Currency code, e.g. "usd"
+                "currency": "string",         # Currency code, e.g. "usd" (optional, defaults to "usd")
                 "payment_for": "string"       # Description of what the payment is for
             }
             Returns:
             {
-                "url": "string"               # URL to redirect the user to Stripe Checkout
+                "checkout_url": "string",     # URL to redirect the user to Stripe Checkout
+                "session_id": "string"        # Session ID for tracking
             }
             """
             
@@ -35,24 +39,38 @@ class StripeRoutes(base_routes.BaseRoutes):
             if settings.PAYMENTS_PROVIDER != "stripe":
                 return jsonify(error="Payments provider not supported"), 400
             
-            # for now, we add fallback defaults for testing
-            user_id = data.get('user_id', 'anonymous')
-            amount = data.get('amount') if data.get('amount') is not None else data.get('amount_cents', 0)
+            # Get user from authenticated token
+            user_id = request.current_user["user_id"]
+            
+            # Get payment details from request
+            amount = data.get('amount') if data.get('amount') is not None else data.get('amount_cents')
             currency = data.get('currency', 'usd')
-            payment_for = data.get('payment_for', 'general')  
+            payment_for = data.get('payment_for', 'general')
+            
+            if amount is None:
+                return jsonify({"error": "Amount is required"}), 400
             
             try:
-
                 payment_intent = stripe_service.checkout_service.create_checkout_session(
                     user_id=user_id,
                     amount_cents=amount,
                     currency=currency,
-                    payment_for=payment_for
+                    payment_for=payment_for,
+                    require_connected_account=True
                 )
                 return jsonify(payment_intent), 200
+            except ValueError as e:
+                # Handle user not having connected Stripe account
+                error_code = str(e)
+                if error_code == "STRIPE_NOT_CONNECTED":
+                    return jsonify({
+                        "error": "User must connect a Stripe account before making payments. Please connect your account in Settings.",
+                        "error_code": "STRIPE_NOT_CONNECTED"
+                    }), 400
+                return jsonify({"error": str(e)}), 400
             except Exception as e:
                 print(f"Error creating checkout session: {e}")
-                return jsonify({"error": f"Failed to create checkout session: {e}"}), 500
+                return jsonify({"error": "Failed to create checkout session"}), 500
 
         # ---- Stripe Account Connection ----
         @bp.route('/connect', methods=['POST'])

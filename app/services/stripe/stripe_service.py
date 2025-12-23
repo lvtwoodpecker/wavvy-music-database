@@ -28,7 +28,8 @@ class StripeService(service.Service):
     def _create_stripe_checkout_service(self) -> StripeCheckoutService:
         return StripeCheckoutService(
             stripe_api_key=self.settings.STRIPE_API_KEY,
-            front_end_url=self.settings.FRONTEND_URL
+            front_end_url=self.settings.FRONTEND_URL,
+            db_session_factory=self.db_session_factory
         )
 
     def _create_stripe_account_service(self) -> StripeAccountService:

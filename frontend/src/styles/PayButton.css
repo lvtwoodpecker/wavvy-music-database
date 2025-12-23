@@ -29,6 +29,21 @@
 
 .pay-button-error {
   margin-top: 0.75rem;
-  color: #a0a0a0;
+  color: #ff6b6b;
   font-size: 0.9rem;
+}
+
+.pay-button-error .link-button {
+  background: none;
+  border: none;
+  color: #4a9eff;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0;
+  margin: 0;
+}
+
+.pay-button-error .link-button:hover {
+  color: #6bb0ff;
 }
